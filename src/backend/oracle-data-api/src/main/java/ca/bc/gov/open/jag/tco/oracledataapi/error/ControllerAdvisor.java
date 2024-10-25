@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import jakarta.validation.ConstraintViolationException;
+import javax.validation.ConstraintViolationException;
 
+import org.hibernate.cfg.NotYetImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -98,12 +99,12 @@ public class ControllerAdvisor {
 	/**
 	 * Returns an API HTTP error code of 500 if a NotYetImplementedException is thrown.
 	 */
-//	@ExceptionHandler(NotYetImplementedException.class)
-//	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-//	public ResponseEntity<Object> handleNotYetImplementedException(NotYetImplementedException ex) {
-//		logger.debug("handleNotYetImplementedException", ex);
-//		return getResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", ex);
-//	}
+	@ExceptionHandler(NotYetImplementedException.class)
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	public ResponseEntity<Object> handleNotYetImplementedException(NotYetImplementedException ex) {
+		logger.debug("handleNotYetImplementedException", ex);
+		return getResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", ex);
+	}
 
 	/**
 	 * Returns a ResponseEntity, populated with a status, message, and details properties.

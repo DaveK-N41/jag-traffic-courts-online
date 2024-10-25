@@ -6,23 +6,24 @@ import java.util.Date;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import ca.bc.gov.open.jag.tco.oracledataapi.BaseTestSuite;
 import ca.bc.gov.open.jag.tco.oracledataapi.model.DisputeUpdateRequest;
 import ca.bc.gov.open.jag.tco.oracledataapi.model.DisputeUpdateRequestStatus;
 import ca.bc.gov.open.jag.tco.oracledataapi.model.DisputeUpdateRequestType;
 import ca.bc.gov.open.jag.tco.oracledataapi.util.RandomUtil;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class DisputeUpdateRequestMapperTest {
+public class DisputeUpdateRequestMapperTest extends BaseTestSuite {
 
+	private DisputeUpdateRequestMapper disputeUpdateRequestMapper;
 
 	@Autowired
 	private DisputeUpdateRequestMapperImpl disputeUpdateRequestMapperImpl;
 
 	@BeforeEach
 	void setUp() {
-        disputeUpdateRequestMapperImpl = new DisputeUpdateRequestMapperImpl();
+		disputeUpdateRequestMapper = disputeUpdateRequestMapperImpl;
 	}
 
 	@Test
@@ -49,7 +50,7 @@ public class DisputeUpdateRequestMapperTest {
 		source.setUpdDtm(updDtm);
 		source.setUpdUserId(updUserId);
 
-		DisputeUpdateRequest target = disputeUpdateRequestMapperImpl.convert(source);
+		DisputeUpdateRequest target = disputeUpdateRequestMapper.convert(source);
 
 		assertEquals(Long.valueOf(disputeUpdateRequestId), target.getDisputeUpdateRequestId());
 		assertEquals(Long.valueOf(disputeId), target.getDisputeId());
@@ -86,7 +87,7 @@ public class DisputeUpdateRequestMapperTest {
 		source.setModifiedTs(updDtm);
 		source.setModifiedBy(updUserId);
 
-		ca.bc.gov.open.jag.tco.oracledataapi.ords.occam.api.model.DisputeUpdateRequest target = disputeUpdateRequestMapperImpl.convert(source);
+		ca.bc.gov.open.jag.tco.oracledataapi.ords.occam.api.model.DisputeUpdateRequest target = disputeUpdateRequestMapper.convert(source);
 
 		assertEquals(disputeUpdateRequestId, target.getDisputeUpdateRequestId());
 		assertEquals(disputeId, target.getDisputeId());

@@ -6,7 +6,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import jakarta.validation.ConstraintViolationException;
+import javax.transaction.Transactional;
+import javax.validation.ConstraintViolationException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -136,6 +137,7 @@ public class DisputeService {
 	 * @param {@link Dispute}
 	 * @return
 	 */
+	@Transactional
 	public Dispute update(Long id, Dispute dispute) {
 		Dispute disputeToUpdate = disputeRepository.findById(id).orElseThrow();
 		List<DisputeCount> disputeCountsToUpdate = null;
