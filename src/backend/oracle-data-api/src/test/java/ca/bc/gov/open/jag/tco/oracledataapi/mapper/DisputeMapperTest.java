@@ -2,24 +2,25 @@ package ca.bc.gov.open.jag.tco.oracledataapi.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import ca.bc.gov.open.jag.tco.oracledataapi.util.RandomUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import ca.bc.gov.open.jag.tco.oracledataapi.BaseTestSuite;
 import ca.bc.gov.open.jag.tco.oracledataapi.ords.occam.api.model.Dispute;
 import ca.bc.gov.open.jag.tco.oracledataapi.ords.occam.api.model.ViolationTicket;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class DisputeMapperTest {
+public class DisputeMapperTest extends BaseTestSuite{
 
-    private DisputeMapperImpl disputeMapperImpl;
-    private RandomUtil randomUtil;
+	private DisputeMapper disputeMapper;
+	
+	@Autowired
+	private DisputeMapperImpl disputeMapperImpl;
 
-    @BeforeEach
-    void setUp() {
-        disputeMapperImpl = new DisputeMapperImpl();
-    }
+	@BeforeEach
+	void setUp() {
+		disputeMapper = disputeMapperImpl;
+	}
 
 	@Test
 	void testMapToDispute_shouldReturnFullLawyerAddress() {
@@ -31,7 +32,7 @@ public class DisputeMapperTest {
 		testDispute.setLawFirmAddrLine3Txt("s, ullamcorper non rutrum sit amet, sollicitudin sit amet lectus. Quisque non massa dolor porttitor.");
 		testViolationTicket.setDispute(testDispute);
 
-		ca.bc.gov.open.jag.tco.oracledataapi.model.Dispute result = disputeMapperImpl.convertViolationTicketDtoToDispute(testViolationTicket);
+		ca.bc.gov.open.jag.tco.oracledataapi.model.Dispute result = disputeMapper.convertViolationTicketDtoToDispute(testViolationTicket);
 
 		assertEquals("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce accumsan nulla quam, non aliquam erat porttitor eu. "
 				+ "Vivamus ornare ante nec eros luctus, non tincidunt ipsum interdum. Aliquam felis felis, ullamcorper non rutrum sit amet, sollicitudin sit amet lectus. "

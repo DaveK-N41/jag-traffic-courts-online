@@ -2,6 +2,7 @@ package ca.bc.gov.open.jag.tco.oracledataapi.service;
 
 import java.util.List;
 
+import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,7 @@ public class FileHistoryService {
 	 * @param {@link FileHistory}
 	 * @return
 	 */
+	@Transactional
 	public Long insertFileHistory(FileHistory fileHistory) {
 		return fileHistoryRepository.save(fileHistory);
 	}

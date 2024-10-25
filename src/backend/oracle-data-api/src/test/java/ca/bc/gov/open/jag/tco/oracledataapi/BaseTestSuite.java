@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.transaction.Transactional;
 
 import org.apache.commons.lang3.builder.Diff;
 import org.apache.commons.lang3.builder.ReflectionDiffBuilder;
@@ -50,6 +51,7 @@ import ca.bc.gov.open.jag.tco.oracledataapi.security.PreAuthenticatedToken;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
+@Transactional
 @Import(DataSourceAutoConfiguration.class)
 public class BaseTestSuite {
 
