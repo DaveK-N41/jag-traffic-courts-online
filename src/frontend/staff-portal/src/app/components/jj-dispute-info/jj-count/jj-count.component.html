@@ -168,11 +168,11 @@
       </span>
     </ng-container>
     <div [formGroup]="form?.get('jjDisputedCountRoP')">
-      <mat-select #matSelectFindings [matTooltip]="matSelectFindings.triggerValue" formControlName="finding"
+      <mat-select #matSelectFindings formControlName="finding"
         (selectionChange)="onFindingChange($event.value)" class="section-grid-text"
         *ngIf="!isViewOnly && jjDisputedCount" style="margin-left:20px !important; width:85%; background:#fffee6">
-        <mat-option [value]="Finding.Guilty" matTooltip="Guilty as charged">Guilty as charged</mat-option>
-        <mat-option [value]="Finding.NotGuilty" matTooltip="Not guilty">Not guilty</mat-option>
+        <mat-option [value]="Finding.Guilty">Guilty as charged</mat-option>
+        <mat-option [value]="Finding.NotGuilty">Not guilty</mat-option>
       </mat-select>
       <div *ngIf="isViewOnly" style="margin-left:20px;">
         <span class="section-grid-header">Finding:<br /></span>
@@ -375,9 +375,7 @@
 
           <div class="section-grid-header" style="padding-top: 1rem !important;">Time to pay</div>
           <div style="font-size: small;">
-            <span class="section-grid-text">{{ (jjDisputedCount?.revisedDueDate && jjDisputedCount?.revisedDueDate !== jjDisputedCount?.dueDate) ? "Yes" :
-              "No"
-              }}</span>
+            <span class="section-grid-text">{{ timeToPay }}</span>
             <span style="padding-left: 0.5rem;">{{ jjDisputedCount?.revisedDueDate | date: "dd-MMM-yyyy" }}</span>
           </div>
         </div>
