@@ -40,6 +40,23 @@ export class JjDisputeUpdatesComponent {
     "DisputantGivenName3":"Disputant Given Name 3", 
     "DisputantSurname":"Surname"
   };
+  COUNT_FIELDS = {
+    "PleaCode": "Plea Code",
+    "CountNo": "Count No",
+    "RequestTimeToPay": "Request Time To Pay",
+    "RequestReduction": "Request Reduction",
+    "RequestCourtAppearance": "Request Court Appearance"
+  };
+  COURT_OPTIONS_FIELDS = {
+    "InterpreterLanguageCd": "Interpreter Language",
+    "InterpreterRequired": "Interpreter Required",
+    "WitnessNo": "Witness No",
+    "FineReductionReason": "Fine Reduction Reason",
+    "TimeToPayReason": "Time To Pay Reason",
+    "RequestCourtAppearance": "Request Court Appearance",
+    "SignatoryName": "Signatory Name",
+    "SignatoryType": "Signatory Type",
+  };
 
   constructor(private disputeService: DisputeService, private lookupsService: LookupsService) {
   }
@@ -83,12 +100,29 @@ export class JjDisputeUpdatesComponent {
         let fields = {};
         if (request.updateType === DisputeUpdateRequestUpdateType.DisputantAddress) {
           fields = this.DISPUTANT_ADDRESS_FIELDS;
-        }
-        else if (request.updateType === DisputeUpdateRequestUpdateType.DisputantPhone) {
+        } else if (request.updateType === DisputeUpdateRequestUpdateType.DisputantPhone) {
           fields = this.DISPUTANT_PHONE_FIELDS;
-        }
-        else if (request.updateType === DisputeUpdateRequestUpdateType.DisputantName) {
+        } else if (request.updateType === DisputeUpdateRequestUpdateType.DisputantName) {
           fields = this.DISPUTANT_NAME_FIELDS;
+        } else if (request.updateType == DisputeUpdateRequestUpdateType.Count) {
+          [0, 1, 2].forEach (i => {            
+            Object.entries(this.COUNT_FIELDS).forEach(([fieldKey, fieldTitle]) => {
+              const newValue = updateJson.DisputeCounts[i][fieldKey];
+              const oldValue = currentJson.DisputeCounts[i][fieldKey];
+              if (oldValue !== newValue) {
+                data.push({
+                  requestedTs: request.createdTs,
+                  fieldTitle: `Count ${i + 1} ${fieldTitle}`,
+                  oldValue: oldValue,
+                  newValue: newValue,
+                  status: request.status,
+                  statusTs: request.statusUpdateTs
+                });
+              }
+            });
+          });
+        } else if (request.updateType == DisputeUpdateRequestUpdateType.CourtOptions) {
+          fields = this.COURT_OPTIONS_FIELDS;
         }
 
         // For each field in the updateType specific fields, extract the value from the updateJson and add it to the data array
