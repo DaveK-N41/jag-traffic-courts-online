@@ -252,7 +252,7 @@ export class JJDisputeComponent implements OnInit {
 
   onRequireCourtHearing() {
     const data: DialogOptions = {
-      titleKey: this.lastUpdatedJJDispute.hearingType === this.HearingType.WrittenReasons ? "Require court hearing?" : "Adjourn / Continue?",
+      titleKey: this.lastUpdatedJJDispute.hearingType === this.HearingType.WrittenReasons ? "Adjourn / Require Hearing?" : "Adjourn / Continue?",
       messageKey: this.lastUpdatedJJDispute.hearingType === this.HearingType.WrittenReasons ?
         "Please enter the reason this request requires a court hearing. This information will be shared with staff only."
         : "Please enter the reason this request requires an additional court hearing. This information will be shared with staff only.",
