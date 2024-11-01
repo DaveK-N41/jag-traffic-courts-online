@@ -60,26 +60,28 @@ export class DisputeDecisionInboxComponent implements OnInit, AfterViewInit {
 
   public ngOnInit() {
     this.authService.userProfile$.subscribe(userProfile => {
-      if (userProfile) {
-        this.IDIR = userProfile.idir;
-        this.data$.subscribe(jjDisputes => {
-          this.data = jjDisputes
-            .map(jjDispute => {
-              return {
-                ...jjDispute,
-                __status: jjDispute.status
-                  .replace(/^[-_]*(.)/, (_, c) => c)
-                  .replace(/[-_]+(.)/g, (_, c) => ' ' + c)
-                  .replace(
-                    /\w\S*/g,
-                    function (txt) {
-                      return txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
-                    })
-              };
-            });
-          this.getAll();
-        })
-      }
+        if (userProfile) {
+            this.IDIR = userProfile.idir;
+            this.data$.subscribe(jjDisputes => {
+                this.data = jjDisputes
+                    .map(jjDispute => {
+                        return {
+                            ...jjDispute,
+                            __status: jjDispute.status === 'REQUIRE_COURT_HEARING'
+                                ? 'Adjourn/Require Hearing'
+                                : jjDispute.status
+                                    .replace(/^[-_]*(.)/, (_, c) => c)
+                                    .replace(/[-_]+(.)/g, (_, c) => ' ' + c)
+                                    .replace(
+                                        /\w\S*/g,
+                                        function (txt) {
+                                            return txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
+                                        })
+                        };
+                    });
+                this.getAll();
+            })
+        }
     });
   }
 

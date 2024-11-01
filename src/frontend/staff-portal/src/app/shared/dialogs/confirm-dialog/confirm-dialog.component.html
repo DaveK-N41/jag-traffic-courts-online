@@ -33,7 +33,7 @@
             <span class="section-grid-header">Due Date: </span>
             <span class="section-grid-text">
               {{
-                options.data[i].jjDisputedCountRoP.finding === 'NOT_GUILTY' ? '' :
+                options.data[i].jjDisputedCountRoP?.finding === 'NOT_GUILTY' ? '' :
                 (options.data[i].revisedDueDate ? (options.data[i].revisedDueDate | date: "dd-MMM-yyyy") :
                 (options.data[i].dueDate ? (options.data[i].dueDate | date: "dd-MMM-yyyy") : ''))
               }}

@@ -33,7 +33,7 @@ export class MoreOptionsDialogComponent {
     const response =
       this.dialogContentOutput !== null
         ? { output: this.dialogContentOutput }
-        : "Require Court Hearing";
+        : "Adjourn/Require Hearing";
     this.dialogRef.close(response);
   }
 
