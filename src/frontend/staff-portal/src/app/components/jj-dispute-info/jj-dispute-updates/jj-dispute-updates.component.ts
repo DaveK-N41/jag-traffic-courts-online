@@ -44,8 +44,7 @@ export class JjDisputeUpdatesComponent {
     "PleaCode": "Plea Code",
     "CountNo": "Count No",
     "RequestTimeToPay": "Request Time To Pay",
-    "RequestReduction": "Request Reduction",
-    "RequestCourtAppearance": "Request Court Appearance"
+    "RequestReduction": "Request Reduction"
   };
   COURT_OPTIONS_FIELDS = {
     "InterpreterLanguageCd": "Interpreter Language",
