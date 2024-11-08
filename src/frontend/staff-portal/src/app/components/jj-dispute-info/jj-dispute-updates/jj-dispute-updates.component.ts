@@ -47,6 +47,18 @@ export class JjDisputeUpdatesComponent {
     "RequestReduction": "Request Reduction"
   };
   COURT_OPTIONS_FIELDS = {
+    "DriversLicenceNumber": "Drivers Licence Number",
+    "DriversLicenceProvince": "Drivers Licence Province",
+    "DriversLicenceIssuedCountry": "Drivers Licence Issued Country",
+    "DriversLicenceIssuedProvince": "Drivers Licence Issued Province",
+    "LawFirmName": "Law Firm Name",
+    "LawyerSurname": "Lawyer Surname",
+    "LawyerGivenName1": "Lawyer Given Name 1",
+    "LawyerGivenName2": "Lawyer Given Name 2",
+    "LawyerGivenName3": "Lawyer Given Name 3",
+    "LawyerAddress": "Lawyer Address",
+    "LawyerPhoneNumber": "Lawyer Phone Number",
+    "LawyerEmail": "Lawyer Email",
     "InterpreterLanguageCd": "Interpreter Language",
     "InterpreterRequired": "Interpreter Required",
     "WitnessNo": "Witness No",
@@ -55,7 +67,15 @@ export class JjDisputeUpdatesComponent {
     "RequestCourtAppearance": "Request Court Appearance",
     "SignatoryName": "Signatory Name",
     "SignatoryType": "Signatory Type",
+    "ContactLawFirmName": "Contact Law Firm Name",
+    "ContactGiven1Nm": "Contact Given Name 1",
+    "ContactGiven2Nm": "Contact Given Name 2",
+    "ContactGiven3Nm": "Contact Given Name 3",
+    "ContactSurnameNm": "Contact Surname",
   };
+  DISPUTANT_EMAIL_FIELDS = {
+    "EmailAddress": "Email Address"
+  }
 
   constructor(private disputeService: DisputeService, private lookupsService: LookupsService) {
   }
@@ -78,22 +98,38 @@ export class JjDisputeUpdatesComponent {
         let provSeqNo = updateJson["AddressProvinceSeqNo"];
         let province : Province = this.lookupsService.provinces.find(p => p.ctryId == provCtryId && p.provSeqNo == provSeqNo);
         let country = this.lookupsService.countries.find(p => p.ctryId == ctryId);
+        let dlCtryId = updateJson["DriversLicenceIssuedCountryId"];        
+        let dlProvSeqNo = updateJson["DriversLicenceIssuedProvinceSeqNo"];
+        let dlCountry = this.lookupsService.countries.find(p => p.ctryId == dlCtryId);
+        let dlProvince = this.lookupsService.provinces.find(p => p.ctryId == dlCtryId && p.provSeqNo == dlProvSeqNo);        
         delete updateJson["AddressCountryId"];
         delete updateJson["AddressProvinceCountryId"];
         delete updateJson["AddressProvinceSeqNo"];
+        delete updateJson["DriversLicenceIssuedCountryId"];
+        delete updateJson["DriversLicenceIssuedProvinceSeqNo"];
         updateJson["AddressProvince"] = province ? province.provNm : "";
         updateJson["AddressCountry"] = country ? country.ctryLongNm : "";
+        updateJson["DriversLicenceIssuedCountry"] = dlCountry ? dlCountry.ctryLongNm : "";
+        updateJson["DriversLicenceIssuedProvince"] = dlProvince ? dlProvince.provNm : "";
 
         ctryId = currentJson["AddressCountryId"];
         provCtryId = currentJson["AddressProvinceCountryId"];
         provSeqNo = currentJson["AddressProvinceSeqNo"];
         province = this.lookupsService.provinces.find(p => p.ctryId == provCtryId && p.provSeqNo == provSeqNo);
         country = this.lookupsService.countries.find(p => p.ctryId == ctryId);
+        dlCtryId = currentJson["DriversLicenceIssuedCountryId"];        
+        dlProvSeqNo = currentJson["DriversLicenceIssuedProvinceSeqNo"];
+        dlCountry = this.lookupsService.countries.find(p => p.ctryId == dlCtryId);
+        dlProvince = this.lookupsService.provinces.find(p => p.ctryId == dlCtryId && p.provSeqNo == dlProvSeqNo);
         delete currentJson["AddressCountryId"];
         delete currentJson["AddressProvinceCountryId"];
         delete currentJson["AddressProvinceSeqNo"];
+        delete currentJson["DriversLicenceIssuedCountryId"];
+        delete currentJson["DriversLicenceIssuedProvinceSeqNo"];
         currentJson["AddressProvince"] = province ? province.provNm : "";
         currentJson["AddressCountry"] = country ? country.ctryLongNm : "";
+        currentJson["DriversLicenceIssuedCountry"] = dlCountry ? dlCountry.ctryLongNm : "";
+        currentJson["DriversLicenceIssuedProvince"] = dlProvince ? dlProvince.provNm : "";
 
         // Identify the specific fields based on the updateType
         let fields = {};
@@ -103,6 +139,8 @@ export class JjDisputeUpdatesComponent {
           fields = this.DISPUTANT_PHONE_FIELDS;
         } else if (request.updateType === DisputeUpdateRequestUpdateType.DisputantName) {
           fields = this.DISPUTANT_NAME_FIELDS;
+        } else if (request.updateType == DisputeUpdateRequestUpdateType.DisputantEmail) {
+          fields = this.DISPUTANT_EMAIL_FIELDS;
         } else if (request.updateType == DisputeUpdateRequestUpdateType.Count) {
           [0, 1, 2].forEach (i => {            
             Object.entries(this.COUNT_FIELDS).forEach(([fieldKey, fieldTitle]) => {
