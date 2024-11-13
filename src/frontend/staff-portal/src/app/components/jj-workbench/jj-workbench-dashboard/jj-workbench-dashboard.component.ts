@@ -9,6 +9,7 @@ import { Store } from '@ngrx/store';
 import * as JJDisputeStore from "app/store/jj-dispute";
 import { BusyService } from '@core/services/busy.service';
 import { UserGroup } from '@shared/enums/user-group.enum';
+import { TabType } from '@shared/enums/tab-type.enum';
 
 @Component({
   selector: 'app-jj-workbench-dashboard',
@@ -25,6 +26,8 @@ export class JjWorkbenchDashboardComponent implements OnInit {
   jjPage: string = "WR Assignments";
   jjDisputeInfo: JJDispute;
   isInfoEditable: boolean = false;
+  tabTypes = TabType;
+  tabTypeSelected: TabType;
 
   hasAssignmentsPermission: boolean = false;
   hasWRInboxPermission: boolean = false;
@@ -54,9 +57,10 @@ export class JjWorkbenchDashboardComponent implements OnInit {
     this.data$ = this.store.select(state => state.jjDispute.data).pipe(filter(i => !!i));
   }
 
-  changeJJDispute(jjDispute: JJDispute) {
+  changeJJDispute(jjDispute: JJDispute, type: TabType) {
     this.isInfoEditable = !this.dcfTab.isActive && this.jjDisputeService.jjDisputeStatusEditable.indexOf(jjDispute.status) > -1;
     this.jjDisputeInfo = jjDispute;
+    this.tabTypeSelected = type;
     this.showDispute = true;
   }
 

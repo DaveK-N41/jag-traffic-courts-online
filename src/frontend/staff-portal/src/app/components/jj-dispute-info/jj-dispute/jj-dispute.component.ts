@@ -16,6 +16,7 @@ import { DisputeLockService } from 'app/api/api/disputeLock.service';
 import { HistoryRecordService } from 'app/services/history-records.service';
 import { PrintOptions } from '@shared/models/print-options.model';
 import { UserGroup } from '@shared/enums/user-group.enum';
+import { TabType } from '@shared/enums/tab-type.enum';
 
 @Component({
   selector: 'app-jj-dispute',
@@ -29,7 +30,7 @@ export class JJDisputeComponent implements OnInit {
   @ViewChild("fileRemarks") fileRemarksAnchor: ElementRef;
 
   @Input() jjDisputeInfo: JJDispute
-  @Input() type: string;
+  @Input() type: TabType;
   @Input() isViewOnly = false;
   @Input() enableStaffSupport = false;
   @Output() backInbox: EventEmitter<any> = new EventEmitter();
@@ -56,6 +57,7 @@ export class JJDisputeComponent implements OnInit {
   Accident = JJDisputeAccidentYn;
   MultipleOfficers = JJDisputeMultipleOfficersYn;
   SignatoryType = JJDisputeSignatoryType;
+  tabTypes = TabType;
 
   ticketInformationForm: FormGroup = this.formBuilder.group({
     occamDisputantSurnameNm: [null, Validators.maxLength(30)],
@@ -151,8 +153,12 @@ export class JJDisputeComponent implements OnInit {
   // get dispute by id
   getJJDispute(): void {
     this.logger.log('JJDisputeComponent::getJJDispute');
+    let assignVTC = false;
+    if(this.type === TabType.DECISION_VALIDATION) {
+      assignVTC = true;
+    }
 
-    this.jjDisputeService.getJJDispute(this.jjDisputeInfo.id, this.jjDisputeInfo.ticketNumber, this.type === "ticket").subscribe(response => {
+    this.jjDisputeService.getJJDispute(this.jjDisputeInfo.id, this.jjDisputeInfo.ticketNumber, assignVTC).subscribe(response => {
       this.retrieving = false;
       this.logger.info(
         'JJDisputeComponent::getJJDispute response',
@@ -181,14 +187,14 @@ export class JJDisputeComponent implements OnInit {
       if (this.lastUpdatedJJDispute?.mostRecentCourtAppearance) {
         if (!this.lastUpdatedJJDispute.mostRecentCourtAppearance.jjSeized) this.lastUpdatedJJDispute.mostRecentCourtAppearance.jjSeized = JJDisputeCourtAppearanceRoPJjSeized.N;
 
-        // if (!this.isViewOnly) {
-        this.lastUpdatedJJDispute.mostRecentCourtAppearance.adjudicator = this.jjName; // Temporarily force to show the name of the JJ who opened the dipsute in the Court Appearance grid.
-        this.lastUpdatedJJDispute.jjAssignedToName = this.jjName;
-        if (this.lastUpdatedJJDispute.jjAssignedTo != this.jjIDIR) {
-          this.lastUpdatedJJDispute.jjAssignedTo = this.jjIDIR;
-          this.jjDisputeService.apiJjAssignPut([this.lastUpdatedJJDispute.ticketNumber], this.jjIDIR).subscribe(response => { }); // assign JJ who opened it
+        if (this.type !== TabType.DCF) {
+          this.lastUpdatedJJDispute.mostRecentCourtAppearance.adjudicator = this.jjName; // Temporarily force to show the name of the JJ who opened the dipsute in the Court Appearance grid.
+          this.lastUpdatedJJDispute.jjAssignedToName = this.jjName;
+          if (this.lastUpdatedJJDispute.jjAssignedTo != this.jjIDIR) {
+            this.lastUpdatedJJDispute.jjAssignedTo = this.jjIDIR;
+            this.jjDisputeService.apiJjAssignPut([this.lastUpdatedJJDispute.ticketNumber], this.jjIDIR).subscribe(response => { }); // assign JJ who opened it
+          }
         }
-        // }
         const mostRecentCourtAppearance = { ...this.lastUpdatedJJDispute.mostRecentCourtAppearance };
         delete mostRecentCourtAppearance.noAppTs;
         this.courtAppearanceForm.patchValue(mostRecentCourtAppearance);
@@ -199,10 +205,6 @@ export class JJDisputeComponent implements OnInit {
       this.ticketInformationForm.patchValue(this.lastUpdatedJJDispute);
       this.contactInformationForm.patchValue(this.lastUpdatedJJDispute);
       this.courtOptionsForm.patchValue(this.lastUpdatedJJDispute);
-
-      if (this.jjIDIR === this.lastUpdatedJJDispute.lockedBy) {
-        this.startTimer(this.lastUpdatedJJDispute.lockExpiresAtUtc, this.lastUpdatedJJDispute.lockId);
-      }
 
       this.isNoAppEnabled = this.RoPApp.N === this.lastUpdatedJJDispute.mostRecentCourtAppearance.appCd;
     });
@@ -357,7 +359,8 @@ export class JJDisputeComponent implements OnInit {
     this.dialog.open(ConfirmDialogComponent, { data, width: "40%" }).afterClosed()
       .subscribe((action: any) => {
         if (action) {
-          this.jjDisputeService.apiJjTicketNumberAcceptPut(this.lastUpdatedJJDispute.ticketNumber, this.type === "ticket").subscribe(response => {
+          this.jjDisputeService.apiJjTicketNumberAcceptPut(this.lastUpdatedJJDispute.ticketNumber, 
+            this.type === TabType.DECISION_VALIDATION).subscribe(response => {
             this.onBackClicked();
           });
         }
@@ -379,7 +382,8 @@ export class JJDisputeComponent implements OnInit {
       .subscribe((action: any) => {
         if (action?.output?.response) {
           this.remarks = action.output.reason;
-          this.jjDisputeService.apiJjDisputeIdReviewPut(this.lastUpdatedJJDispute.ticketNumber, this.type === "ticket", this.remarks).subscribe(() => {
+          this.jjDisputeService.apiJjDisputeIdReviewPut(this.lastUpdatedJJDispute.ticketNumber, 
+            this.type === TabType.DECISION_VALIDATION, this.remarks).subscribe(() => {
             this.jjDisputeService.apiJjAssignPut([this.lastUpdatedJJDispute.ticketNumber], this.selectedJJ).subscribe(response => {
               this.onBackClicked();
             })
@@ -393,7 +397,8 @@ export class JJDisputeComponent implements OnInit {
     if (this.lastUpdatedJJDispute.hearingType === this.HearingType.CourtAppearance) {
       this.lastUpdatedJJDispute.jjDisputeCourtAppearanceRoPs[0] = { ...this.lastUpdatedJJDispute.jjDisputeCourtAppearanceRoPs[0], ...this.courtAppearanceForm.value };
     }
-    return this.jjDisputeService.putJJDispute(this.lastUpdatedJJDispute.ticketNumber, this.lastUpdatedJJDispute.id, this.lastUpdatedJJDispute, this.type === "ticket", this.remarks).pipe(
+    return this.jjDisputeService.putJJDispute(this.lastUpdatedJJDispute.ticketNumber, this.lastUpdatedJJDispute.id, 
+      this.lastUpdatedJJDispute, this.type === TabType.DECISION_VALIDATION, this.remarks).pipe(
       map(
         response => {
           this.lastUpdatedJJDispute = response;
@@ -585,34 +590,6 @@ export class JJDisputeComponent implements OnInit {
   onBackClicked() {
     this.jjDisputeService.refreshDisputes.emit();
     this.backInbox.emit();
-    this.releaseLock(this.lastUpdatedJJDispute.lockId);
-  }
-
-  /**
-   * Dispute Lock
-   */
-
-  // to start the timer
-  startTimer(timerValue: string, lockId: string) {
-    var start = new Date();
-    var end = new Date(timerValue);
-    var milliseconds = end.getTime() - start.getTime();
-    var value = milliseconds > 10000 ? (milliseconds - 10000) : 0;
-    setTimeout(() => {
-      this.refreshLock(lockId);
-    }, value);
-  }
-
-  // to refresh the lock
-  refreshLock(lockId: string) {
-    this.disputeLockService.apiDisputelockLockIdPut(lockId).subscribe(response => {
-      this.startTimer(response, lockId);
-    });
-  }
-
-  // to release the lock
-  releaseLock(lockId: string) {
-    this.disputeLockService.apiDisputelockLockIdDelete(lockId).subscribe(response => { });
   }
 
   bindNoAppTs(value){

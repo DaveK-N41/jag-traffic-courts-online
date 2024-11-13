@@ -12,6 +12,7 @@ import { Store } from '@ngrx/store';
 import { JJDisputeStore } from 'app/store';
 import { AuthService } from 'app/services/auth.service';
 import { UserGroup } from '@shared/enums/user-group.enum';
+import { TabType } from '@shared/enums/tab-type.enum';
 
 @Component({
   selector: 'app-staff-workbench-dashboard',
@@ -28,6 +29,8 @@ export class StaffWorkbenchDashboardComponent implements OnInit {
   disputeInfo: Dispute;
   data$: Observable<JJDispute[]>;
   jjDisputeInfo: JJDispute;
+  tabTypes = TabType;
+  tabTypeSelected: TabType;
 
   hasTicketValidationPermission: boolean = false;
   hasDecisionValidationPermission: boolean = false;
@@ -57,18 +60,20 @@ export class StaffWorkbenchDashboardComponent implements OnInit {
     this.data$ = this.store.select(JJDisputeStore.Selectors.JJDisputes).pipe(filter(i => !!i));
   }
 
-  changeDispute(dispute: Dispute) {
+  changeDispute(dispute: Dispute, type: TabType) {
     this.disputeInfo = dispute;
     if (dispute.ticketNumber[0] == 'A') {
       this.decidePopup = 'E'
     } else {
       this.decidePopup = "A"
     }
+    this.tabTypeSelected = type;
     this.showTicket = true;
   }
 
-  changeJJDispute(jjDispute: JJDispute) {
+  changeJJDispute(jjDispute: JJDispute, type: TabType) {
     this.jjDisputeInfo = jjDispute;
+    this.tabTypeSelected = type;
     this.showTicket = true;
   }
 

@@ -4,7 +4,7 @@ import { JJDispute } from '../../../services/jj-dispute.service';
 import { JJDisputedCount, JJDisputedCountAppearInCourt, JJDisputedCountIncludesSurcharge, JJDisputedCountLatestPlea, JJDisputedCountPlea, JJDisputedCountRequestReduction, JJDisputedCountRequestTimeToPay, JJDisputedCountRoPAbatement, JJDisputedCountRoPDismissed, JJDisputedCountRoPFinding, JJDisputedCountRoPForWantOfProsecution, JJDisputedCountRoPJailIntermittent, JJDisputedCountRoPWithdrawn, JJDisputeHearingType, JJDisputeStatus } from 'app/api';
 import { MatLegacyRadioChange as MatRadioChange } from '@angular/material/legacy-radio';
 import { LookupsService, Statute } from 'app/services/lookups.service';
-import { CustomDatePipe } from '@shared/pipes/custom-date.pipe';
+import { TabType } from '@shared/enums/tab-type.enum';
 
 @Component({
   selector: 'app-jj-count',
@@ -14,7 +14,7 @@ import { CustomDatePipe } from '@shared/pipes/custom-date.pipe';
 export class JJCountComponent implements OnInit, OnChanges {
   @Input() jjDisputeInfo: JJDispute;
   @Input() count: number;
-  @Input() type: string;
+  @Input() type: TabType;
   @Input() isViewOnly: boolean = false;
   /** Admin Staff Support edit mode */
   @Input() isSSEditMode: boolean = false;
@@ -35,6 +35,7 @@ export class JJCountComponent implements OnInit, OnChanges {
   Dismissed = JJDisputedCountRoPDismissed;
   Finding = JJDisputedCountRoPFinding;
   LatestPlea = JJDisputedCountLatestPlea;
+  tabTypes = TabType;
 
   // Variables
   todayDate: Date = new Date();
