@@ -1,5 +1,6 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using nClam;
 using Npgsql;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -7,7 +8,6 @@ using System.Reflection;
 using TrafficCourts.Arc.Dispute.Client;
 using TrafficCourts.Common;
 using TrafficCourts.Common.Configuration;
-using TrafficCourts.Common.OpenAPIs.VirusScan;
 using TrafficCourts.Messaging;
 using TrafficCourts.Workflow.Service.Configuration;
 using TrafficCourts.Workflow.Service.Sagas;
@@ -69,8 +69,52 @@ public static class Startup
         // Add COMS (Object Management Service) Client
         builder.Services.AddObjectManagementService("COMS");
 
-        // add the Virus Scan Client
-        builder.Services.AddVirusScanClient(builder.Configuration);
+        // add the Virus ClamAV Client, adding this way so it "just works" when
+        // deploying because the service name is clamav across all environments
+        builder.Services.AddTransient<IClamClient,ClamClient>(sp =>
+        {
+            string clamavServer = "127.0.0.1";
+            int clamavPort = 3310;
+
+            var configuration = sp.GetRequiredService<IConfiguration>();
+
+            // TODO: use better strongly typed configuration
+            IConfigurationSection? section = configuration.GetSection("ClamAV");
+            if (section is not null)
+            {
+                var server = section.GetValue<string>("Server");
+                if (server is not null)
+                {
+                    clamavServer = server;
+                }
+
+
+                var port = section.GetValue<int?>("Port");
+                if (port is not null)
+                {
+                    clamavPort = port.Value;
+                }
+            }
+            else
+            {
+                // these environment variables come from OpenShift because
+                // clamav is deploy with a service name clamav
+                string? host = configuration.GetValue<string>("CLAMAV_SERVICE_HOST");
+                if (host is not null)
+                {
+                    clamavServer = host;
+                }
+
+                int? port = configuration.GetValue<int?>("CLAMAV_SERVICE_PORT");
+                if (port is not null)
+                {
+                    clamavPort = port.Value;
+                }
+            }
+
+            var client = new ClamClient(clamavServer, clamavPort);
+            return client;
+        });
 
         builder.Services.AddTransient<ISmtpClientFactory, SmtpClientFactory>();
         builder.Services.AddTransient<IEmailSenderService, EmailSenderService>();

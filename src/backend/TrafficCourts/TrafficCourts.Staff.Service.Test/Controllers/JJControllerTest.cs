@@ -13,6 +13,7 @@ using TrafficCourts.Staff.Service.Controllers;
 using TrafficCourts.Staff.Service.Services;
 using Xunit;
 using ApiException = TrafficCourts.Exceptions.ApiException;
+using MediatR;
 
 namespace TrafficCourts.Staff.Service.Test.Controllers;
 
@@ -34,7 +35,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         
         // Act
@@ -60,7 +62,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.AssignJJDisputesToJJ(ticketnumbers, "Bruce Wayne", CancellationToken.None);
@@ -85,7 +88,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator , jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.AssignJJDisputesToJJ(null!, "Bruce Wayne", CancellationToken.None);
@@ -112,7 +116,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.AssignJJDisputesToJJ(ticketnumbers, "Bruce Wayne", CancellationToken.None);
@@ -137,7 +142,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.UpdateCourtAppearanceAndRequireCourtHearingJJDisputeAsync(ticketnumber, CancellationToken.None);
@@ -162,7 +168,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.UpdateCourtAppearanceAndRequireCourtHearingJJDisputeAsync(ticketnumber, CancellationToken.None);
@@ -188,7 +195,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.UpdateCourtAppearanceAndRequireCourtHearingJJDisputeAsync(ticketnumber, CancellationToken.None);
@@ -214,7 +222,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.UpdateCourtAppearanceAndRequireCourtHearingJJDisputeAsync(ticketnumber, CancellationToken.None);
@@ -239,7 +248,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.UpdateCourtAppearanceAndConfirmJJDisputeAsync(ticketnumber, CancellationToken.None);
@@ -264,7 +274,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.UpdateCourtAppearanceAndConfirmJJDisputeAsync(ticketnumber, CancellationToken.None);
@@ -290,7 +301,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.UpdateCourtAppearanceAndConfirmJJDisputeAsync(ticketnumber, CancellationToken.None);
@@ -316,7 +328,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.UpdateCourtAppearanceAndConfirmJJDisputeAsync(ticketnumber, CancellationToken.None);
@@ -341,7 +354,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.GetJJDisputeAsync(1, ticketnumber, false, CancellationToken.None);
@@ -366,7 +380,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.GetJJDisputeAsync(1, ticketnumber, false, CancellationToken.None);
@@ -391,7 +406,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.GetJJDisputeAsync(1, ticketnumber, false, CancellationToken.None);
@@ -422,7 +438,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.GetJustinDocument(ticketnumber, documentType, CancellationToken.None);
@@ -449,7 +466,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.GetJustinDocument(ticketnumber, documentType, CancellationToken.None);
@@ -474,7 +492,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.GetJJDisputeAsync(1, ticketnumber, true, CancellationToken.None);
@@ -503,7 +522,8 @@ public class JJControllerTest
         var mockLogger = new Mock<ILogger<JJController>>();
         var printService = Mock.Of<IPrintDigitalCaseFileService>();
         var lockService = Mock.Of<IDisputeLockService>();
-        JJController jjDisputeController = new(jjDisputeService.Object, printService, lockService, mockLogger.Object);
+        var mediator = Mock.Of<IMediator>();
+        JJController jjDisputeController = new(mediator, jjDisputeService.Object, printService, lockService, mockLogger.Object);
 
         // Act
         IActionResult? result = await jjDisputeController.GetJJDisputeAsync(1, ticketnumber, true, CancellationToken.None);
