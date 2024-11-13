@@ -109,7 +109,7 @@
       </div>
       <div class="col-md-8" *ngIf="jjDisputedCount">
         <mat-select class="section-grid-text" formControlName="latestPlea"
-          *ngIf="type !== 'ticket' && !isViewOnly; else view_plea_content" style="width:75%; background:#fffee6">
+          *ngIf="type !== tabTypes.DECISION_VALIDATION && type !== tabTypes.DCF && !isViewOnly; else view_plea_content" style="width:75%; background:#fffee6">
           <mat-option [value]="LatestPlea.G">Guilty</mat-option>
           <mat-option [value]="LatestPlea.N">Not guilty</mat-option>
         </mat-select>
@@ -124,7 +124,7 @@
         <span class="section-grid-header">Date</span>
       </div>
       <div class="col-md-8" *ngIf="jjDisputedCount">
-        <div *ngIf="type !== 'ticket' && !isViewOnly; else view_plea_date_content ">
+        <div *ngIf="type !== tabTypes.DECISION_VALIDATION && type !== tabTypes.DCF && !isViewOnly; else view_plea_date_content ">
           <input type="text" formControlName="latestPleaUpdateTs" class="section-grid-text latest-plea-text"
             bsDatepicker placeholder="DD-MMM-YYYY" [bsConfig]="{ withTimepicker: false, keepDatepickerOpened: true, 
             dateInputFormat: 'DD-MMM-YYYY', containerClass: 'theme-dark-blue', isAnimated: true, showWeekNumbers: false, 
@@ -161,7 +161,7 @@
   </section>
 
   <!-- JJ RoP for Court Appearance -->
-  <section *ngIf="type !== 'ticket' && (jjDisputeInfo.hearingType === HearingType.CourtAppearance || jjDisputeInfo.hearingType === HearingType.WrittenReasons) && !isSSEditMode">
+  <section *ngIf="type !== tabTypes.DECISION_VALIDATION && type !== tabTypes.DCF && (jjDisputeInfo.hearingType === HearingType.CourtAppearance || jjDisputeInfo.hearingType === HearingType.WrittenReasons) && !isSSEditMode">
     <ng-container subHeader>
       <span class="count-text">
         <h3>{{ "label.findings" | translate }}</h3>
@@ -196,7 +196,7 @@
       </div>
     </div>
   </section>
-  <section *ngIf="type === 'ticket' && (jjDisputeInfo.hearingType === HearingType.CourtAppearance || jjDisputeInfo.hearingType === HearingType.WrittenReasons) && !isSSEditMode">
+  <section *ngIf="(type === tabTypes.DECISION_VALIDATION || type === tabTypes.DCF) && (jjDisputeInfo.hearingType === HearingType.CourtAppearance || jjDisputeInfo.hearingType === HearingType.WrittenReasons) && !isSSEditMode">
     <ng-container subHeader>
       <span class="count-text">
         <h3>{{ "label.findings" | translate }}</h3>

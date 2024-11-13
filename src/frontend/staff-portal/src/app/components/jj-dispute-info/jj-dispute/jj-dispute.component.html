@@ -28,7 +28,8 @@
       </div>
     </div>
   </ng-container>
-  <div [ngClass]="{'contact-info' : type === 'ticket'}" style="padding-bottom: 1.5vh;">
+  <div [ngClass]="{'contact-info' : (type === tabTypes.DECISION_VALIDATION || type === tabTypes.DCF)}" 
+    style="padding-bottom: 1.5vh;">
     <div *ngIf="retrieving === true">
       <span>
         <h3>Retrieving ticket information...</h3>
@@ -97,7 +98,7 @@
               <p class="section-grid-text">{{ lastUpdatedJJDispute.icbcReceivedDate | date: "dd-MMM-yyyy" : "UTC" }}
               </p>
             </span>
-            <ng-container *ngIf="type !== 'ticket'">
+            <ng-container *ngIf="type !== tabTypes.DECISION_VALIDATION && type !== tabTypes.DCF">
               <span class="section-grid-cell">
                 <p class="section-grid-header">Court Location Code</p>
                 <p class="section-grid-text">{{ lastUpdatedJJDispute.courtAgenId }}</p>
@@ -492,7 +493,7 @@
         </div>
       </section>
 
-      <section *ngIf="type === 'ticket'" class="section-sticky">
+      <section *ngIf="type === tabTypes.DECISION_VALIDATION || type === tabTypes.DCF" class="section-sticky">
         <div fxLayout="row" style="padding-bottom: 2rem;">
           <div fxFlex="40">
             <div fxFlex>
@@ -598,7 +599,7 @@
         <ng-container subHeader>
           <span>
             <h3>Add Remarks<br />
-              <span *ngIf="type !== 'ticket'" class="small-note">
+              <span *ngIf="type !== tabTypes.DECISION_VALIDATION && type !== tabTypes.DCF" class="small-note">
                 <i><span style="color:red;">*</span> This is for internal use only</i>
               </span>
             </h3>
@@ -608,57 +609,54 @@
           style="background: #fffee6; width: 100%"></textarea>
       </section>
       <div fxLayout="row">
-        <div *ngIf="type === 'ticket' && isViewOnly && lastUpdatedJJDispute.status === DisputeStatus.Confirmed"
-          fxFlex="40" fxLayout="row">
-          <div style="margin-right: 1rem;">
-            <mat-form-field appearance="outline">
-              <mat-select [(ngModel)]="selectedJJ" placeholder="choose a JJ">
-                <mat-option [value]=""></mat-option>
-                <mat-option *ngFor="let jj of jjList" [value]="jj.idir"><i>{{ jj.jjDisplayName }}</i>
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-          <div fxFlex>
-            <button fxFlex class="large" mat-flat-button type="button" color="primary" (click)="returnToJJ()"
-              [disabled]="!selectedJJ">
-              Return to JJ
-            </button>
-          </div>
+        <div *ngIf="type === tabTypes.DECISION_VALIDATION && isViewOnly && lastUpdatedJJDispute.status === DisputeStatus.Confirmed" 
+          fxLayoutAlign="start center" fxFlex="40" fxLayout="row">
+          <mat-form-field appearance="outline" class="h-auto return-jj-align">
+            <mat-select [(ngModel)]="selectedJJ" placeholder="choose a JJ" class="return-jj-select">
+              <mat-option [value]=""></mat-option>
+              <mat-option *ngFor="let jj of jjList" [value]="jj.idir"><i>{{ jj.jjDisplayName }}</i>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <button class="large h-auto" mat-flat-button type="button" color="primary" (click)="returnToJJ()"
+            [disabled]="!selectedJJ">
+            Return to JJ
+          </button>
         </div>
-        <div fxFlex>
-        </div>
-        <button fxFlex="30" class="large" mat-flat-button type="button" color="primary" style="margin-right: 20px;"
-          (click)="onRequireCourtHearing()"
-          *ngIf="type !== 'ticket' && lastUpdatedJJDispute.status !== DisputeStatus.RequireCourtHearing && lastUpdatedJJDispute.status !== DisputeStatus.Accepted && lastUpdatedJJDispute.status !== DisputeStatus.Cancelled && lastUpdatedJJDispute.status !== DisputeStatus.Concluded && concludeStatusOnly === false && cancelStatusOnly === false">
-          {{ lastUpdatedJJDispute.hearingType === HearingType.WrittenReasons ? 'Adjourn/Require Hearing' :
-          'Adjourn/Continue' }}
-        </button>
-        <button fxFlex="30" class="large" mat-flat-button type="button" color="primary" style="margin-right: 20px;"
-          (click)="onSave()"
-          *ngIf="type !== 'ticket' && [DisputeStatus.New, DisputeStatus.InProgress, DisputeStatus.HearingScheduled, DisputeStatus.Review].indexOf(lastUpdatedJJDispute.status) >= 0 && cancelStatusOnly === false && concludeStatusOnly === false">
-          Save & Finish Later
-        </button>
-        <button fxFlex="20" class="large" mat-flat-button type="button" color="primary" (click)="onConfirm()"
-          *ngIf="[DisputeStatus.New, DisputeStatus.HearingScheduled, DisputeStatus.InProgress, DisputeStatus.Review].indexOf(lastUpdatedJJDispute.status) >= 0 && concludeStatusOnly === false && cancelStatusOnly === false && isJJ">
-          Confirm
-        </button>
-        <button fxFlex="20" class="large" mat-flat-button type="button" color="primary" (click)="onConcluded()"
-          *ngIf="concludeStatusOnly === true && cancelStatusOnly === false">
-          Conclude
-        </button>
-        <button fxFlex="20" class="large" mat-flat-button type="button" color="primary" (click)="onCancelled()"
-          *ngIf="cancelStatusOnly === true && concludeStatusOnly === false">
-          Cancel
-        </button>
-        <button fxFlex="20" class="large" mat-flat-button type="button" color="primary" (click)="onAccept()"
-          *ngIf="lastUpdatedJJDispute.status === DisputeStatus.Confirmed && cancelStatusOnly === false && concludeStatusOnly === false">
-          Accept
-        </button>
-        <button fxFlex="20" class="large" mat-flat-button type="button" color="primary" (click)="onBackClicked()"
-          *ngIf="lastUpdatedJJDispute.status === DisputeStatus.RequireCourtHearing || lastUpdatedJJDispute.status === DisputeStatus.Cancelled || lastUpdatedJJDispute.status === DisputeStatus.Concluded">
-          Back
-        </button>
+        <div fxFlex></div>
+        <ng-container *ngIf="type !== tabTypes.DCF">
+          <button fxFlex="30" class="large" mat-flat-button type="button" color="primary" style="margin-right: 20px;"
+            (click)="onRequireCourtHearing()"
+            *ngIf="type !== tabTypes.DECISION_VALIDATION && lastUpdatedJJDispute.status !== DisputeStatus.RequireCourtHearing && lastUpdatedJJDispute.status !== DisputeStatus.Accepted && lastUpdatedJJDispute.status !== DisputeStatus.Cancelled && lastUpdatedJJDispute.status !== DisputeStatus.Concluded && concludeStatusOnly === false && cancelStatusOnly === false">
+            {{ lastUpdatedJJDispute.hearingType === HearingType.WrittenReasons ? 'Adjourn/Require Hearing' :
+            'Adjourn/Continue' }}
+          </button>
+          <button fxFlex="30" class="large" mat-flat-button type="button" color="primary" style="margin-right: 20px;"
+            (click)="onSave()"
+            *ngIf="type !== tabTypes.DECISION_VALIDATION && [DisputeStatus.New, DisputeStatus.InProgress, DisputeStatus.HearingScheduled, DisputeStatus.Review].indexOf(lastUpdatedJJDispute.status) >= 0 && cancelStatusOnly === false && concludeStatusOnly === false">
+            Save & Finish Later
+          </button>
+          <button fxFlex="20" class="large" mat-flat-button type="button" color="primary" (click)="onConfirm()"
+            *ngIf="[DisputeStatus.New, DisputeStatus.HearingScheduled, DisputeStatus.InProgress, DisputeStatus.Review].indexOf(lastUpdatedJJDispute.status) >= 0 && concludeStatusOnly === false && cancelStatusOnly === false && isJJ">
+            Confirm
+          </button>
+          <button fxFlex="20" class="large" mat-flat-button type="button" color="primary" (click)="onConcluded()"
+            *ngIf="concludeStatusOnly === true && cancelStatusOnly === false">
+            Conclude
+          </button>
+          <button fxFlex="20" class="large" mat-flat-button type="button" color="primary" (click)="onCancelled()"
+            *ngIf="cancelStatusOnly === true && concludeStatusOnly === false">
+            Cancel
+          </button>
+          <button fxFlex="20" class="large" mat-flat-button type="button" color="primary" (click)="onAccept()"
+            *ngIf="lastUpdatedJJDispute.status === DisputeStatus.Confirmed && cancelStatusOnly === false && concludeStatusOnly === false">
+            Accept
+          </button>
+          <button fxFlex="20" class="large" mat-flat-button type="button" color="primary" (click)="onBackClicked()"
+            *ngIf="lastUpdatedJJDispute.status === DisputeStatus.RequireCourtHearing || lastUpdatedJJDispute.status === DisputeStatus.Cancelled || lastUpdatedJJDispute.status === DisputeStatus.Concluded">
+            Back
+          </button>
+        </ng-container>        
       </div>
     </div>
   </div>
