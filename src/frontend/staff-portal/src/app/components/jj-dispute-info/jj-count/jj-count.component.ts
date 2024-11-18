@@ -152,10 +152,13 @@ export class JJCountComponent implements OnInit, OnChanges {
       // Patch the form with the modified object
       this.form.patchValue(jjDisputedCountCopy);
       this.jjDisputedCount.lesserOrGreaterAmount ?? this.form.controls.lesserOrGreaterAmount.setValue(this.jjDisputedCount.ticketedFineAmount);
-      this.inclSurcharge = this.jjDisputedCount ? (this.jjDisputedCount.includesSurcharge == this.IncludesSurcharge.Y ? "yes" : 
+      this.inclSurcharge = (this.jjDisputedCount && this.jjDisputedCount.lesserOrGreaterAmount) ? 
+        (this.jjDisputedCount.includesSurcharge == this.IncludesSurcharge.Y ? "yes" : 
         (this.jjDisputedCount.includesSurcharge == this.IncludesSurcharge.N ? "no" : "")) : "";
-      this.fineReduction = this.jjDisputedCount ? (this.jjDisputedCount.totalFineAmount || this.jjDisputedCount.lesserOrGreaterAmount ? 
-        (this.jjDisputedCount.lesserOrGreaterAmount !== null && this.jjDisputedCount.lesserOrGreaterAmount != this.jjDisputedCount.ticketedFineAmount ? "yes" : "no") : "") : "";      
+      this.fineReduction = this.jjDisputedCount ? (this.jjDisputedCount.totalFineAmount || 
+          this.jjDisputedCount.lesserOrGreaterAmount ? (this.jjDisputedCount.lesserOrGreaterAmount !== null && 
+          this.jjDisputedCount.lesserOrGreaterAmount != this.jjDisputedCount.ticketedFineAmount ? 
+          "yes" : "no") : "") : "";      
       this.timeToPay = this.jjDisputedCount ? (this.jjDisputedCount.revisedDueDate ? 
         (new Date(this.jjDisputedCount.dueDate).getDate() != new Date(this.jjDisputedCount.revisedDueDate).getDate() 
         ? "yes" : "no") : "") : "";
