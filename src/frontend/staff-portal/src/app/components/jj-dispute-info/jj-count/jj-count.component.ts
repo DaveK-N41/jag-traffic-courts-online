@@ -4,7 +4,7 @@ import { JJDispute } from '../../../services/jj-dispute.service';
 import { JJDisputedCount, JJDisputedCountAppearInCourt, JJDisputedCountIncludesSurcharge, JJDisputedCountLatestPlea, JJDisputedCountPlea, JJDisputedCountRequestReduction, JJDisputedCountRequestTimeToPay, JJDisputedCountRoPAbatement, JJDisputedCountRoPDismissed, JJDisputedCountRoPFinding, JJDisputedCountRoPForWantOfProsecution, JJDisputedCountRoPJailIntermittent, JJDisputedCountRoPWithdrawn, JJDisputeHearingType, JJDisputeStatus } from 'app/api';
 import { MatLegacyRadioChange as MatRadioChange } from '@angular/material/legacy-radio';
 import { LookupsService, Statute } from 'app/services/lookups.service';
-import { CustomDatePipe } from '@shared/pipes/custom-date.pipe';
+import { TabType } from '@shared/enums/tab-type.enum';
 
 @Component({
   selector: 'app-jj-count',
@@ -14,7 +14,7 @@ import { CustomDatePipe } from '@shared/pipes/custom-date.pipe';
 export class JJCountComponent implements OnInit, OnChanges {
   @Input() jjDisputeInfo: JJDispute;
   @Input() count: number;
-  @Input() type: string;
+  @Input() type: TabType;
   @Input() isViewOnly: boolean = false;
   /** Admin Staff Support edit mode */
   @Input() isSSEditMode: boolean = false;
@@ -35,6 +35,7 @@ export class JJCountComponent implements OnInit, OnChanges {
   Dismissed = JJDisputedCountRoPDismissed;
   Finding = JJDisputedCountRoPFinding;
   LatestPlea = JJDisputedCountLatestPlea;
+  tabTypes = TabType;
 
   // Variables
   todayDate: Date = new Date();
@@ -77,8 +78,7 @@ export class JJCountComponent implements OnInit, OnChanges {
 
   constructor(
     private lookupsService: LookupsService,
-    private formBuilder: FormBuilder,
-    private datePipe: CustomDatePipe
+    private formBuilder: FormBuilder
   ) {
   }
 
@@ -155,11 +155,9 @@ export class JJCountComponent implements OnInit, OnChanges {
       this.inclSurcharge = this.jjDisputedCount ? (this.jjDisputedCount.includesSurcharge == this.IncludesSurcharge.Y ? "yes" : 
         (this.jjDisputedCount.includesSurcharge == this.IncludesSurcharge.N ? "no" : "")) : "";
       this.fineReduction = this.jjDisputedCount ? (this.jjDisputedCount.totalFineAmount || this.jjDisputedCount.lesserOrGreaterAmount ? 
-        (this.jjDisputedCount.lesserOrGreaterAmount !== null && this.jjDisputedCount.lesserOrGreaterAmount != this.jjDisputedCount.ticketedFineAmount ? "yes" : "no") : "") : "";
-      let dueDate = new Date(this.jjDisputedCount.dueDate);
-      dueDate.setDate(dueDate.getDate() + 1);
+        (this.jjDisputedCount.lesserOrGreaterAmount !== null && this.jjDisputedCount.lesserOrGreaterAmount != this.jjDisputedCount.ticketedFineAmount ? "yes" : "no") : "") : "";      
       this.timeToPay = this.jjDisputedCount ? (this.jjDisputedCount.revisedDueDate ? 
-        (dueDate.getDate() != new Date(this.jjDisputedCount.revisedDueDate).getDate() 
+        (new Date(this.jjDisputedCount.dueDate).getDate() != new Date(this.jjDisputedCount.revisedDueDate).getDate() 
         ? "yes" : "no") : "") : "";
       this.bindRevisedDueDate(this.jjDisputedCount.revisedDueDate);
       this.updateInclSurcharge(this.inclSurcharge);
@@ -271,7 +269,9 @@ export class JJCountComponent implements OnInit, OnChanges {
           this.jjDisputedCount.latestPleaUpdateTs = new Date(this.jjDisputedCount.latestPleaUpdateTs).toISOString();
         }
         if (this.jjDisputedCount.revisedDueDate) {
-          this.jjDisputedCount.revisedDueDate = new Date(this.jjDisputedCount.revisedDueDate).toISOString();
+          let revisedDueDate = new Date(this.jjDisputedCount.revisedDueDate);
+          revisedDueDate.setHours(0, 0, 0, 0);
+          this.jjDisputedCount.revisedDueDate = revisedDueDate.toISOString().slice(0, 10);
         }
         this.jjDisputedCount.includesSurcharge = (this.inclSurcharge === "yes" ? this.IncludesSurcharge.Y : 
           (this.inclSurcharge === "no" ? this.IncludesSurcharge.N : this.IncludesSurcharge.Unknown));
@@ -281,7 +281,9 @@ export class JJCountComponent implements OnInit, OnChanges {
       this.countForm.valueChanges.subscribe(() => {
         this.jjDisputedCount = { ...this.jjDisputedCount, ...this.countForm.value };
         if (this.jjDisputedCount.revisedDueDate) {
-          this.jjDisputedCount.revisedDueDate = new Date(this.jjDisputedCount.revisedDueDate).toISOString();
+          let revisedDueDate = new Date(this.jjDisputedCount.revisedDueDate);
+          revisedDueDate.setHours(0, 0, 0, 0);
+          this.jjDisputedCount.revisedDueDate = revisedDueDate.toISOString().slice(0, 10);
         }
         this.inclSurcharge = (this.jjDisputedCount.includesSurcharge === this.IncludesSurcharge.N ? "no" : "yes");
         this.jjDisputedCountUpdate.emit(this.jjDisputedCount);
@@ -300,15 +302,20 @@ export class JJCountComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    let shouldInitFormData = false;
     if (changes?.jjDisputeInfo?.currentValue) {
       this.jjDisputeInfo = { ...this.jjDisputeInfo, ...this.jjDisputeInfo };
-      this.initFormData();
+      shouldInitFormData = true;
     }
     if (changes?.jjDisputedCount?.currentValue) {
       this.jjDisputedCount = { ...this.jjDisputedCount, ...this.jjDisputedCount };
-      this.initFormData();
+      shouldInitFormData = true;
     }
     if (changes?.isSSEditMode?.currentValue) {
+      shouldInitFormData = true;
+    }
+
+    if (shouldInitFormData) {
       this.initFormData();
     }
   }
@@ -494,7 +501,13 @@ export class JJCountComponent implements OnInit, OnChanges {
 
   // Revised Due Date
   bindRevisedDueDate(value){
-    this.form.controls.revisedDueDate.setValue(value ? new Date(value) : null);
+    if(value) {
+      value = new Date(value);
+      value.setDate(value.getDate() + 1);      
+      this.form.controls.revisedDueDate.setValue(value);
+    } else {
+      this.form.controls.revisedDueDate.setValue(null);
+    }
   }
 
   isEmpty(value) {
