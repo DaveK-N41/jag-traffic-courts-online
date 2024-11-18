@@ -255,134 +255,134 @@
     <!-- Final disposition input for court appeaances, form for Non Staff Support Edit mode -->
     <form [formGroup]="form" novalidate
       *ngIf="(jjDisputeInfo.hearingType === HearingType.CourtAppearance || jjDisputeInfo.hearingType === HearingType.WrittenReasons) && !(jjDisputedCount && isSSEditMode)">
-      <!-- Fine amount -->
-      <div style="display: grid; grid-template-columns: 33% 33% 33%">
-        <ng-container *ngIf="!isViewOnly">
-          <span class="section-jj-grid-cell">
-            <p class="section-grid-header">Revise fine</p>
-            <p class="section-jj-grid-text">
-              <mat-radio-group [(ngModel)]="fineReduction" [ngModelOptions]="{standalone: true}"
-                (change)="updateFineAmount($event)" [disabled]="!jjDisputedCount">
-                <mat-radio-button value="yes" style="padding-right: 5px; font-size: small">yes</mat-radio-button>
-                <mat-radio-button value="no" style="font-size: small">no</mat-radio-button>
-              </mat-radio-group>
-            </p>
-          </span>
-          <span class="section-jj-grid-cell">
-            <p class="section-grid-header">&nbsp;</p>
-            <p class="section-jj-grid-text">&nbsp;</p>
-          </span>
-          <span class="section-grid-cell">
-            <p class="section-grid-header">Fine Amount</p>
-            <p class="section-jj-grid-text">
-              <span
-                [hidden]="(fineReduction==='' || !jjDisputedCount.totalFineAmount)">
-                {{ jjDisputedCount?.ticketedFineAmount | currency:'CAD':'symbol-narrow':'1.0-0' }}<br /><br /></span>
-              <span
-                [hidden]="!(fineReduction==='yes' && !(form.get('lesserOrGreaterAmount').hasError('min') || form.get('lesserOrGreaterAmount').hasError('max')))"
-                class="section-grid-header">Lesser/Greater<br /></span>
-              <span
-                [hidden]="!(fineReduction==='yes' && (form.get('lesserOrGreaterAmount').hasError('min') || form.get('lesserOrGreaterAmount').hasError('max')))"
-                class="section-grid-header" style="color: red;">0
-                < Fine < 10 000 </span>
-                  <span [hidden]="!(fineReduction==='yes')">$ </span><input type="number"
-                    [hidden]="!(fineReduction==='yes')" formControlName="lesserOrGreaterAmount" max="9999" min="0"
-                    (change)="onChangelesserOrGreaterAmount()"
-                    style="background-color:#e4f2ff; width: 80%; font-size: smaller; border: 0" />
-            </p>
-          </span>
-          <span class="section-jj-grid-cell">
-            <p class="section-grid-header"><span *ngIf="fineReduction==='yes'">Includes Surcharge</span></p>
-            <p class="section-grid-header"><span
-                *ngIf="fineReduction==='no' || !fineReduction">&nbsp;<br /><br /></span>
-            </p>
-            <p class="section-jj-grid-text">
-              <mat-radio-group [(ngModel)]="inclSurcharge" [ngModelOptions]="{standalone: true}"
-                (change)="updateInclSurcharge($event.value)" *ngIf="fineReduction==='yes'"
-                [disabled]="!jjDisputedCount">
-                <mat-radio-button value="yes" style="padding-right: 5px; font-size: small">yes</mat-radio-button>
-                <mat-radio-button value="no" style="font-size: small">no</mat-radio-button>
-              </mat-radio-group>
-              <span *ngIf="fineReduction==='no'"><br /><br /><br /><br /></span>
-            </p>
-          </span>
-          <span class="section-jj-grid-cell">
-            <p class="section-grid-header">&nbsp;</p>
-            <p class="section-jj-grid-text">&nbsp;</p>
-          </span>
-          <span class="section-grid-cell">
-            <p class="section-grid-header">&nbsp;<br /><br /></p>
-            <p class="section-jj-grid-text">
-              <span *ngIf="fineReduction==='yes'">{{ lesserOrGreaterAmount |
-                currency:'CAD':'symbol-narrow':'1.0-0'}}</span>
-              <span *ngIf="fineReduction==='no'"><br /></span>
-            </p>
-            <p class="section-jj-grid-text2">
-              <span *ngIf="fineReduction==='yes'">&nbsp;+&nbsp;({{ surcharge | currency:'CAD':'symbol-narrow':'1.0-0'
-                }})</span>
-              <span *ngIf="fineReduction==='no'"><br /></span>
-            </p>
-          </span>
-          <!-- Time to pay -->
-          <span class="section-jj-grid-cell">
-            <p class="section-grid-header">Time to pay</p>
-            <p class="section-jj-grid-text">
-              <mat-radio-group [(ngModel)]="timeToPay" [ngModelOptions]="{standalone: true}" layout="row"
-                (change)="updateRevisedDueDate($event)" [disabled]="!jjDisputedCount">
-                <mat-radio-button value="yes" style="padding-right: 5px; font-size: small">yes</mat-radio-button>
-                <mat-radio-button value="no" style="font-size: small">no</mat-radio-button>
-              </mat-radio-group>
-            </p>
-          </span>
-          <span class="section-jj-grid-cell">
-            <p class="section-grid-header">&nbsp;</p>
-            <p class="section-jj-grid-text">
-              <input formControlName="revisedDueDate" type="text" [hidden]="!(timeToPay==='yes')"
-                bsDatepicker class="revised-due-date" placeholder="DD-MMM-YYYY"
-                [bsConfig]="{ dateInputFormat: 'DD-MMM-YYYY', containerClass: 'theme-dark-blue', isAnimated: true,
-                showWeekNumbers: false, adaptivePosition: true }">
-            </p>
-          </span>
-        </ng-container>
-        <div style="padding: 0 0.3rem;" *ngIf="isViewOnly">
-          <div class="section-grid-header">Fine calculation</div>
-          <div
-            *ngIf="(jjDisputedCount?.lesserOrGreaterAmount === jjDisputedCount?.ticketedFineAmount && inclSurcharge === 'yes')"
-            style="font-size: small;">
-            <span class="section-grid-text">Ticketed amount: </span>
-            {{ jjDisputedCount?.ticketedFineAmount | currency:'CAD':'symbol-narrow':'1.0-0' }}
+      <!-- Fine amount -->      
+      <ng-container *ngIf="!isViewOnly">
+        <div class="row">
+          <div class="col-md-5">
+            <span class="section-grid-header">Revise fine</span>
           </div>
-          <div
-            *ngIf="!(jjDisputedCount?.lesserOrGreaterAmount === jjDisputedCount?.ticketedFineAmount && inclSurcharge === 'yes')"
-            style="font-size: small;">
-            <span class="section-grid-text">Lesser/greater amount: </span>
-            {{ jjDisputedCount?.lesserOrGreaterAmount | currency:'CAD':'symbol-narrow':'1.0-0'}}
-          </div>
-
-          <div class="section-grid-header" style="padding-top: 1rem !important;">Includes Surcharge</div>
-          <div style="font-size: small;">
-            <span class="section-grid-text">{{ jjDisputedCount?.includesSurcharge === IncludesSurcharge.Y ? "Yes" : "No"
-              }}</span>
-            <span style="padding-left: 0.5rem;"
-              *ngIf="(jjDisputedCount?.lesserOrGreaterAmount === jjDisputedCount?.ticketedFineAmount && inclSurcharge === 'yes')">{{
-              jjDisputedCount?.ticketedFineAmount | currency:'CAD':'symbol-narrow':'1.0-0' }}</span>
-            <span style="padding-left: 0.5rem;"
-              *ngIf="!(jjDisputedCount?.lesserOrGreaterAmount === jjDisputedCount?.ticketedFineAmount && inclSurcharge === 'yes')">{{
-              jjDisputedCount?.lesserOrGreaterAmount | currency:'CAD':'symbol-narrow':'1.0-0' }}</span>
-            <span style="color: #33BBFF !important;"> + <i>({{ surcharge | currency: 'CAD':'symbol-narrow':'1.0-0'
-                }})</i></span>
-          </div>
-
-          <div class="section-grid-header" style="padding-top: 1rem !important;">Time to pay</div>
-          <div style="font-size: small;">
-            <span class="section-grid-text">{{ timeToPay }}</span>
-            <span style="padding-left: 0.5rem;">{{ jjDisputedCount?.revisedDueDate | date: "dd-MMM-yyyy" : "UTC" }}</span>
+          <div class="col-md-7">
+            <mat-radio-group [(ngModel)]="fineReduction" [ngModelOptions]="{standalone: true}"
+              (change)="updateFineAmount($event)" [disabled]="!jjDisputedCount">
+              <mat-radio-button value="yes" style="padding-right: 5px; font-size: small">yes</mat-radio-button>
+              <mat-radio-button value="no" style="font-size: small">no</mat-radio-button>
+            </mat-radio-group>
           </div>
         </div>
-        <span class="section-grid-cell">
-          <p class="section-grid-header">&nbsp;</p>
-          <p class="section-jj-grid-text">&nbsp;</p>
-        </span>
+        <div class="row">
+          <div class="col-md-5">
+            <span class="section-grid-header">Fine Amount</span>
+          </div>
+          <div class="col-md-7">
+            <span class="section-grid-text"
+              [hidden]="(fineReduction==='' || !jjDisputedCount.totalFineAmount)">
+              {{ jjDisputedCount?.ticketedFineAmount | currency:'CAD':'symbol-narrow':'1.0-0' }}</span>
+          </div>
+        </div>
+        <div class="row" *ngIf="fineReduction==='yes'">
+          <div class="col-md-5">
+            <span class="section-grid-header">Lesser/Greater Amount</span>
+          </div>
+          <div class="col-md-7">
+            <input type="number" formControlName="lesserOrGreaterAmount" max="9999" min="0"
+              (change)="onChangelesserOrGreaterAmount()" class="section-grid-text final-disposition-text" /><br>
+            <span class="section-grid-text text-body" *ngIf="!(form.get('lesserOrGreaterAmount').hasError('min') || 
+              form.get('lesserOrGreaterAmount').hasError('max'))"><i>
+              {{ lesserOrGreaterAmount | currency:'CAD':'symbol-narrow':'1.0-0'}} + 
+              {{ surcharge | currency:'CAD':'symbol-narrow':'1.0-0' }} (surcharge) = 
+              {{ (lesserOrGreaterAmount + surcharge) | currency:'CAD':'symbol-narrow':'1.0-0' }}</i>
+            </span>
+            <span
+              *ngIf="form.get('lesserOrGreaterAmount').hasError('min') || 
+              form.get('lesserOrGreaterAmount').hasError('max')" class="section-grid-header" style="color: red;">
+              0 < Fine < 10 000 
+            </span>
+          </div>
+        </div>
+        <div class="row" *ngIf="fineReduction==='yes'">
+          <div class="col-md-5">
+            <span class="section-grid-header">Includes Surcharge</span>
+          </div>
+          <div class="col-md-7">
+            <mat-radio-group [(ngModel)]="inclSurcharge" [ngModelOptions]="{standalone: true}"
+              (change)="updateInclSurcharge($event.value)" [disabled]="!jjDisputedCount">
+              <mat-radio-button value="yes" style="padding-right: 5px; font-size: small">yes</mat-radio-button>
+              <mat-radio-button value="no" style="font-size: small">no</mat-radio-button>
+            </mat-radio-group>
+          </div>
+        </div>
+        <!-- Time to pay -->
+        <div class="row">
+          <div class="col-md-5">
+            <span class="section-grid-header">Time to pay</span>
+          </div>
+          <div class="col-md-7">
+            <mat-radio-group [(ngModel)]="timeToPay" [ngModelOptions]="{standalone: true}" layout="row"
+              (change)="updateRevisedDueDate($event)" [disabled]="!jjDisputedCount">
+              <mat-radio-button value="yes" style="padding-right: 5px; font-size: small">yes</mat-radio-button>
+              <mat-radio-button value="no" style="font-size: small">no</mat-radio-button>
+            </mat-radio-group>
+          </div>
+        </div>
+        <div class="row" *ngIf="timeToPay==='yes'">
+          <div class="col-md-5">
+            <span class="section-grid-header">&nbsp;</span>
+          </div>
+          <div class="col-md-7">
+            <input formControlName="revisedDueDate" type="text" placeholder="DD-MMM-YYYY"
+              bsDatepicker class="section-grid-text final-disposition-text"
+              [bsConfig]="{ dateInputFormat: 'DD-MMM-YYYY', containerClass: 'theme-dark-blue', isAnimated: true,
+              showWeekNumbers: false, adaptivePosition: true }">
+          </div>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="isViewOnly">
+        <div class="row" *ngIf="lesserOrGreaterAmount === jjDisputedCount?.ticketedFineAmount">
+          <div class="col-md-5">
+            <span class="section-grid-header">Fine Amount</span>
+          </div>
+          <div class="col-md-7">
+            <span class="section-grid-text">{{ jjDisputedCount?.ticketedFineAmount | 
+              currency:'CAD':'symbol-narrow':'1.0-0' }}</span>
+          </div>
+        </div>
+        <ng-container *ngIf="lesserOrGreaterAmount !== jjDisputedCount?.ticketedFineAmount">
+          <div class="row">
+            <div class="col-md-5">
+              <span class="section-grid-header">Lesser/Greater Amount</span>
+            </div>
+            <div class="col-md-7">
+              <span class="section-grid-text">{{ jjDisputedCount?.lesserOrGreaterAmount | 
+                currency:'CAD':'symbol-narrow':'1.0-0' }}</span> <br>
+              <span class="section-grid-text text-body"><i>
+                {{ lesserOrGreaterAmount | currency:'CAD':'symbol-narrow':'1.0-0'}} + 
+                {{ surcharge | currency:'CAD':'symbol-narrow':'1.0-0' }} (surcharge) = 
+                {{ (lesserOrGreaterAmount + surcharge) | currency:'CAD':'symbol-narrow':'1.0-0' }}</i>
+              </span>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-5">
+              <span class="section-grid-header">Includes Surcharge</span>
+            </div>
+            <div class="col-md-7">
+              <span class="section-grid-text">{{ jjDisputedCount?.includesSurcharge === IncludesSurcharge.Y ? 
+                "Yes" : "No" }}</span>
+            </div>
+          </div>
+        </ng-container>        
+        <div class="row">
+          <div class="col-md-5">
+            <span class="section-grid-header">Time to pay</span>
+          </div>
+          <div class="col-md-7" *ngIf="timeToPay">
+            <span class="section-grid-text">{{ timeToPay === 'no' ? 'No' : 'Yes' }}</span><br>
+            <span class="section-grid-header text-body">{{ jjDisputedCount?.revisedDueDate | 
+              date: "dd-MMM-yyyy" : "UTC" }}</span>
+          </div>
+        </div>
+      </ng-container>
+      <div style="display: grid; grid-template-columns: 33% 33% 33%">
         <ng-container [formGroup]="form?.get('jjDisputedCountRoP')">
           <!-- Suspended Sentence -->
           <span class="section-grid-cell" style="grid-column: span 3">
