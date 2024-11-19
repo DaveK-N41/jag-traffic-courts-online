@@ -337,7 +337,7 @@
         </div>
       </ng-container>
       <ng-container *ngIf="isViewOnly">
-        <div class="row" *ngIf="lesserOrGreaterAmount === jjDisputedCount?.ticketedFineAmount">
+        <div class="row">
           <div class="col-md-5">
             <span class="section-grid-header">Fine Amount</span>
           </div>
@@ -346,7 +346,8 @@
               currency:'CAD':'symbol-narrow':'1.0-0' }}</span>
           </div>
         </div>
-        <ng-container *ngIf="lesserOrGreaterAmount !== jjDisputedCount?.ticketedFineAmount">
+        <ng-container *ngIf="jjDisputedCount?.lesserOrGreaterAmount && 
+          lesserOrGreaterAmount !== jjDisputedCount?.ticketedFineAmount">
           <div class="row">
             <div class="col-md-5">
               <span class="section-grid-header">Lesser/Greater Amount</span>
