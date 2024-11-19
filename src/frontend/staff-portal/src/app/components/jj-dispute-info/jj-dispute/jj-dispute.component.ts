@@ -230,6 +230,13 @@ export class JJDisputeComponent implements OnInit {
   }
 
   onConfirm(): void {
+    // TCVP-3082: Set dueDate values to current date before opening the dialog
+    this.lastUpdatedJJDispute.jjDisputedCounts.forEach(count => {
+      if (!count.revisedDueDate) {
+        count.revisedDueDate = new Date().toISOString();
+      }
+    });
+
     const data: DialogOptions = {
       titleKey: "Submit to VTC Staff?",
       messageKey: "Are you sure this dispute is ready to be submitted to VTC Staff?",
