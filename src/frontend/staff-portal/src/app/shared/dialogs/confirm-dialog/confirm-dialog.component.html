@@ -14,6 +14,22 @@
   <p *ngIf="options.messageKey">{{ options.messageKey | translate }}</p>
   <ng-template appDialogContent></ng-template>
   <section *ngIf="options.data">
+    <div class="row">
+      <div class="col-md-3">
+        <span class="section-grid-header">Signed By:</span>
+      </div>
+      <div class="col-md-9">
+        <span class="section-grid-text">{{ jjIDIR }}</span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-3">
+        <span class="section-grid-header">Date Signed:</span>
+      </div>
+      <div class="col-md-9">
+        <span class="section-grid-text">{{ currentDate | date: "dd-MMM-yyyy" }}</span>
+      </div>
+    </div>
     <ng-container subHeader>
       <h3>{{ "label.final_disposition" | translate }}</h3>
     </ng-container>
@@ -25,7 +41,7 @@
             <h3>Count {{count.count}}</h3>
           </span>
           <span class="section-jj-grid-cell">
-            <span class="section-grid-header">Fine Amount includes Surcharge: </span>
+            <span class="section-grid-header">Total Amount: </span>
             <span class="section-grid-text">{{ (count.totalFineAmount ? 
               (count.totalFineAmount | currency:'CAD':'symbol-narrow':'1.0-0') : '$0') }}</span>
           </span>

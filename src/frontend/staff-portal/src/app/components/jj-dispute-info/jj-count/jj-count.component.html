@@ -723,26 +723,23 @@
     </div>
 
     <div style="display: grid; grid-template-columns: 49% 49%">
-      <span class="section-jj-grid-cell">
+      <span class="section-jj-grid-cell text-center">
         <p>
-          <span
-            style="font-size:small; color: #707070; font-weight: bold; margin: 0 !important; padding-right: 10px; float: right;">
-            Due date</span><br />
-          <span style="font-weight: bold; font-size: small; float: right; padding-right: 10px;"
-            *ngIf="jjDisputeInfo.status == DisputeStatus.Confirmed || jjDisputeInfo.status == DisputeStatus.Review ||
-            jjDisputeInfo.status == DisputeStatus.RequireCourtHearing || jjDisputeInfo.status == DisputeStatus.Concluded" >{{
-            jjDisputedCount?.revisedDueDate | date: "dd-MMM-yyyy" : "UTC" }}</span><br />
-        </p>
-      </span>
-      <span class="section-grid-cell">
-        <p><span
-            style="font-size:small; color: #707070; font-weight: bold; margin: 0 !important; padding-right: 10px; float: right;">
-            Fine Amount includes Surcharge</span><br />
-          <span style="font-weight: bold; float: right !important; padding-right: 10px;"
+          <span class="section-grid-header">Due date</span><br />
+          <span class="section-grid-text"
             *ngIf="jjDisputeInfo.status == DisputeStatus.Confirmed || jjDisputeInfo.status == DisputeStatus.Review ||
             jjDisputeInfo.status == DisputeStatus.RequireCourtHearing || jjDisputeInfo.status == DisputeStatus.Concluded" >
-            {{ jjDisputedCount ? ( jjDisputedCount.totalFineAmount ? (jjDisputedCount.totalFineAmount | currency:'CAD':'symbol-narrow':'1.0-0') : '&nbsp;') :
-            '&nbsp;' }}</span>
+            {{ jjDisputedCount?.revisedDueDate | date: "dd-MMM-yyyy" : "UTC" }}</span>
+        </p>
+      </span>
+      <span class="section-grid-cell text-center">
+        <p>
+          <span class="section-grid-header">Total Amount</span><br />
+          <span class="section-grid-text"
+            *ngIf="jjDisputeInfo.status == DisputeStatus.Confirmed || jjDisputeInfo.status == DisputeStatus.Review ||
+            jjDisputeInfo.status == DisputeStatus.RequireCourtHearing || jjDisputeInfo.status == DisputeStatus.Concluded" >
+            {{ jjDisputedCount ? ( jjDisputedCount.totalFineAmount ? 
+            (jjDisputedCount.totalFineAmount | currency:'CAD':'symbol-narrow':'1.0-0') : '&nbsp;') : '&nbsp;' }}</span>
         </p>
       </span>
     </div>
