@@ -377,7 +377,9 @@
           </div>
           <div class="col-md-7" *ngIf="timeToPay">
             <span class="section-grid-text">{{ timeToPay === 'no' ? 'No' : 'Yes' }}</span><br>
-            <span class="section-grid-header text-body">{{ jjDisputedCount?.revisedDueDate | 
+            <span class="section-grid-header text-body"
+              *ngIf="(jjDisputedCount?.revisedDueDate && timeToPay === 'Yes')">{{
+              jjDisputedCount?.revisedDueDate | 
               date: "dd-MMM-yyyy" : "UTC" }}</span>
           </div>
         </div>

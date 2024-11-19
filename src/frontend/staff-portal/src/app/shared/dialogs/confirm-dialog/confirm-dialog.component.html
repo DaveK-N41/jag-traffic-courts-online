@@ -34,8 +34,8 @@
             <span class="section-grid-text">
               {{
                 count.jjDisputedCountRoP?.finding === 'NOT_GUILTY' ? '' :
-                (count.revisedDueDate ? (count.revisedDueDate | date: "dd-MMM-yyyy") :
-                (count.dueDate ? (count.dueDate | date: "dd-MMM-yyyy") : ''))
+                (count.revisedDueDate ? (count.revisedDueDate | date: "dd-MMM-yyyy" : "UTC") :
+                (count.dueDate ? (count.dueDate | date: "dd-MMM-yyyy" : "UTC") : ''))
               }}
             </span>
           </span>

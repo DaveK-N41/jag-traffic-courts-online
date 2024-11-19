@@ -161,7 +161,8 @@ export class JJCountComponent implements OnInit, OnChanges {
           "yes" : "no") : "") : "";      
       this.timeToPay = this.jjDisputedCount ? (this.jjDisputedCount.revisedDueDate ? 
         (new Date(this.jjDisputedCount.dueDate).getDate() != new Date(this.jjDisputedCount.revisedDueDate).getDate() 
-        ? "yes" : "no") : "") : "";
+          && this.jjDisputedCount.revisedDueDate.split('T')[0] != this.jjDisputeInfo.jjDecisionDate.split('T')[0]
+          ? "Yes" : "No") : "") : "";
       this.bindRevisedDueDate(this.jjDisputedCount.revisedDueDate);
       this.updateInclSurcharge(this.inclSurcharge);
 
@@ -485,11 +486,9 @@ export class JJCountComponent implements OnInit, OnChanges {
   }
 
   updateRevisedDueDate(event: MatRadioChange) {
-    // if they select no set it back to passed in due date
+    // if they select no set it to null
     if (event.value == "no") {
-      const revisedDueDate = new Date(this.jjDisputedCount?.dueDate);
-      revisedDueDate.setDate(revisedDueDate.getDate() + 1);
-      this.form.controls.revisedDueDate.setValue(revisedDueDate);
+      this.form.controls.revisedDueDate.setValue(null);
     }
   }
 
