@@ -5,6 +5,7 @@ import { DialogDefaultOptions } from '../dialog-default-options.model';
 import { DialogOptions } from '../dialog-options.model';
 import { DIALOG_DEFAULT_OPTION } from '../dialogs-properties.provider';
 import { DialogContentOutput } from '../dialog-output.model';
+import { AuthService } from 'app/services/auth.service';
 
 @Component({
   selector: 'app-confirm-dialog',
@@ -15,11 +16,14 @@ import { DialogContentOutput } from '../dialog-output.model';
 export class ConfirmDialogComponent {
   public options: DialogOptions;
   public dialogContentOutput: DialogContentOutput<any>;
+  jjIDIR: string;
+  currentDate: Date = new Date();
 
   constructor(
     public dialogRef: MatDialogRef<ConfirmDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public customOptions: DialogOptions,
-    @Inject(DIALOG_DEFAULT_OPTION) public defaultOptions: DialogDefaultOptions
+    @Inject(DIALOG_DEFAULT_OPTION) public defaultOptions: DialogDefaultOptions,
+    private authService: AuthService
   ) {
     this.options =
       typeof customOptions === 'string'
@@ -27,6 +31,12 @@ export class ConfirmDialogComponent {
         : this.getOptions(customOptions);
 
     this.dialogContentOutput = null;
+
+    this.authService.userProfile$.subscribe(userProfile => {
+      if (userProfile) {
+        this.jjIDIR = userProfile.idir;
+      }
+    });
   }
 
   public onConfirm(): void {

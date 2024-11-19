@@ -126,8 +126,7 @@ export class JJDisputeComponent implements OnInit {
     private lookupsService: LookupsService,
     private config: ConfigService,
     private documentService: DocumentService,
-    private historyRecordService: HistoryRecordService,
-    private disputeLockService: DisputeLockService,
+    private historyRecordService: HistoryRecordService
   ) {
     this.authService.jjList$.subscribe(result => {
       this.jjList = result;
