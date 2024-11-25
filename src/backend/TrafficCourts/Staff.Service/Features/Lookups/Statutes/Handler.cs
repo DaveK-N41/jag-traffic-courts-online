@@ -52,7 +52,7 @@ public class Handler : IRequestHandler<Request, Response>
             _.stat_paragraph_txt ?? string.Empty,
             _.stat_sub_paragraph_txt ?? string.Empty,
             GetCode(_, buffer),
-            _.stat_short_description_txt,
+            _.stat_short_description_txt ?? _.stat_description_txt,
             _.stat_description_txt
         )).ToList();
 
@@ -61,12 +61,7 @@ public class Handler : IRequestHandler<Request, Response>
 
     private static string GetCode(Statute statute, StringBuilder buffer)
     {
-        buffer.Append(statute.act_cd);
-        if (!string.IsNullOrWhiteSpace(statute.stat_section_txt))
-        {
-            buffer.Append(' ');
-            buffer.Append(statute.stat_section_txt);
-        }
+        buffer.Append(statute.stat_section_txt);
 
         if (!string.IsNullOrWhiteSpace(statute.stat_sub_section_txt))
         {

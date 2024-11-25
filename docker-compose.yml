@@ -103,6 +103,9 @@ services:
       CDOGS__CLIENTSECRET: ${CDOGS__CLIENTSECRET:-}
       CDOGS__ENDPOINT: ${CDOGS__ENDPOINT:-https://cdogs-dev.api.gov.bc.ca/api}
       CDOGS__TOKENENDPOINT: ${CDOGS__TOKENENDPOINT:-https://dev.loginproxy.gov.bc.ca/auth/realms/comsvcauth/protocol/openid-connect/token}
+      ORDSDATASERVICE__ADDRESS: ${ORDSDATASERVICE__ADDRESS}
+      ORDSDATASERVICE__PASSWORD: ${ORDSDATASERVICE__PASSWORD}
+      ORDSDATASERVICE__USERNAME: ${ORDSDATASERVICE__USERNAME}
     ports:
       - "5090:8080"
     restart: always

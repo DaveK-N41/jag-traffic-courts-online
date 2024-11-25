@@ -243,7 +243,7 @@ export class DocumentService {
      * Creates a new file the document management service along with metadata.
      * @param noticeOfDisputeId The occam dispute id to associate document with.
      * @param documentType The document type to associate with this file.
-     * @param file 
+     * @param file The file to save in the common object management service and the metadata of the uploaded file to be saved including the document type
      * @param disputeId The TCO dispute id to associate document with.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
