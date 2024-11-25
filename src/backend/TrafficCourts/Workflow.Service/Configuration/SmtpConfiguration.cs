@@ -18,6 +18,11 @@ namespace TrafficCourts.Workflow.Service.Configuration
         /// </summary>
         public int Port { get; set; }
 
+        /// <summary>
+        /// Set to true if you want to ignore certificate validation
+        /// </summary>
+        public bool IgnoreCertificateValidation { get; set; }
+
         public void Validate()
         {
             if (string.IsNullOrEmpty(Host)) throw new SettingsValidationException(Section, nameof(Host), "is required");
