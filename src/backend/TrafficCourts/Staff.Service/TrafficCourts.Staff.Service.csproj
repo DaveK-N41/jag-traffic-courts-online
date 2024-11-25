@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FastEndpoints" Version="5.26.0" />
+    <PackageReference Include="FastEndpoints" Version="5.31.0" />
     <PackageReference Include="FastEndpoints.Swagger.Swashbuckle" Version="2.3.0" />
     <PackageReference Include="MediatR" Version="12.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.4" />
@@ -55,8 +55,8 @@
     <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
     <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.5.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="7.0.0" />
     <PackageReference Include="ZiggyCreatures.FusionCache.OpenTelemetry" Version="1.0.0" />
   </ItemGroup>
 
@@ -66,6 +66,7 @@
     <ProjectReference Include="..\TrafficCourts.Coms.Client\TrafficCourts.Coms.Client.csproj" />
     <ProjectReference Include="..\TrafficCourts.Cdogs.Client\TrafficCourts.Cdogs.Client.csproj" />
     <ProjectReference Include="..\TrafficCourts.OracleDataApi\TrafficCourts.OracleDataApi.csproj" />
+    <ProjectReference Include="..\TrafficCourts.OrdsDataService\TrafficCourts.OrdsDataService.csproj" />
     <ProjectReference Include="..\TrafficCourts.TicketSearch\TrafficCourts.TicketSearch.csproj" />
   </ItemGroup>
 
@@ -82,5 +83,14 @@
 	<ItemGroup>
 	  <EmbeddedResource Include="Services\RedisLua\Extend.lua" />
 	  <EmbeddedResource Include="Services\RedisLua\Unlock.lua" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Features\Lookups\DisputeCaseFileDisputeStatusTypes\" />
+	  <Folder Include="Features\Lookups\DisputeCaseFileAuditLogEntryTypes\" />
+	  <Folder Include="Features\Lookups\DisputeAuditLogEntryTypes\" />
+	  <Folder Include="Features\Lookups\DisputeStatusTypes\" />
+	  <Folder Include="Features\Lookups\DisputeUpdateRequestTypes\" />
+	  <Folder Include="Features\Lookups\DisputeUpdateStatusTypes\" />
 	</ItemGroup>
 </Project>

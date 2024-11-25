@@ -18,7 +18,10 @@ app.UseRouting(); //if using, this call must go before auth/cors/fastendpoints m
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseFastEndpoints(c => { });
+app.UseFastEndpoints(c => {
+    c.Endpoints.RoutePrefix = "api";
+    c.Endpoints.PrefixNameWithFirstTag = true;
+});
 
 app.UseEndpoints(c => { });
 

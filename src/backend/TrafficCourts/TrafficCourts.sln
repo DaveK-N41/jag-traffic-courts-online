@@ -49,6 +49,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TrafficCourts.OracleDataApi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TrafficCourts.TicketSearch", "TrafficCourts.TicketSearch\TrafficCourts.TicketSearch.csproj", "{A9B14DB2-467C-487B-9260-59BB79D86D73}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrafficCourts.OrdsDataService", "TrafficCourts.OrdsDataService\TrafficCourts.OrdsDataService.csproj", "{2A9A53E9-FEC8-4749-9399-B38A5B9D2875}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrafficCourts.OrdsDataService.Test", "TrafficCourts.OrdsDataService.Test\TrafficCourts.OrdsDataService.Test.csproj", "{147092E8-3AF8-444C-9DBE-4D64F5224FB1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -139,6 +143,14 @@ Global
 		{A9B14DB2-467C-487B-9260-59BB79D86D73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9B14DB2-467C-487B-9260-59BB79D86D73}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9B14DB2-467C-487B-9260-59BB79D86D73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A9A53E9-FEC8-4749-9399-B38A5B9D2875}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A9A53E9-FEC8-4749-9399-B38A5B9D2875}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A9A53E9-FEC8-4749-9399-B38A5B9D2875}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A9A53E9-FEC8-4749-9399-B38A5B9D2875}.Release|Any CPU.Build.0 = Release|Any CPU
+		{147092E8-3AF8-444C-9DBE-4D64F5224FB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{147092E8-3AF8-444C-9DBE-4D64F5224FB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{147092E8-3AF8-444C-9DBE-4D64F5224FB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{147092E8-3AF8-444C-9DBE-4D64F5224FB1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -153,6 +165,7 @@ Global
 		{E49DF83B-4491-41DC-A3E2-4DD59768C336} = {7B716295-C23B-4849-B1B9-0BBF9800D8E9}
 		{A3C93E4F-5A45-4028-9820-20E037FF5F2F} = {7B716295-C23B-4849-B1B9-0BBF9800D8E9}
 		{C0059080-9EB3-4503-BD9B-BA24427F3B2C} = {7B716295-C23B-4849-B1B9-0BBF9800D8E9}
+		{147092E8-3AF8-444C-9DBE-4D64F5224FB1} = {7B716295-C23B-4849-B1B9-0BBF9800D8E9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F53B0D46-E55D-4CE9-8617-6CD7FD73C49B}

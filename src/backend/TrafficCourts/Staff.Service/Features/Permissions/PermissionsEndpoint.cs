@@ -14,7 +14,7 @@ public class PermissionsEndpoint : EndpointWithoutRequest<IEnumerable<Permission
 
     public override void Configure()
     {
-        Get("/api/permissions");
+        Get("permissions");
         Description(x =>
         {
             x.WithSummary("Gets the current users permissions");

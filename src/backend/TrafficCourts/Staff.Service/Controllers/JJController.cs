@@ -1,3 +1,4 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -10,6 +11,7 @@ using TrafficCourts.Common.Errors;
 using TrafficCourts.Domain.Models;
 using TrafficCourts.Exceptions;
 using TrafficCourts.Staff.Service.Authentication;
+using TrafficCourts.Staff.Service.Features.CourtFiles.Summaries;
 using TrafficCourts.Staff.Service.Models.DigitalCaseFiles.Print;
 using TrafficCourts.Staff.Service.Services;
 
@@ -18,6 +20,7 @@ namespace TrafficCourts.Staff.Service.Controllers;
 public partial class JJController : StaffControllerBase
 {
     private readonly IPrintDigitalCaseFileService _printService;
+    private readonly IMediator _mediator;
     private readonly IJJDisputeService _jjDisputeService;
     private readonly IDisputeLockService _disputeLockService;
     private readonly ILogger<JJController> _logger;
@@ -25,17 +28,20 @@ public partial class JJController : StaffControllerBase
     /// <summary>
     /// Default Constructor
     /// </summary>
+    /// <param name="mediator"></param>
     /// <param name="jjDisputeService"></param>
     /// <param name="printService"></param>
     /// <param name="disputeLockService"></param>
     /// <param name="logger"></param>
     /// <exception cref="ArgumentNullException"><paramref name="logger"/> is null.</exception>
     public JJController(
+        IMediator mediator,
         IJJDisputeService jjDisputeService,
         IPrintDigitalCaseFileService printService,
         IDisputeLockService disputeLockService,
         ILogger<JJController> logger)
     {
+        _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         _jjDisputeService = jjDisputeService ?? throw new ArgumentNullException(nameof(jjDisputeService));
         _printService = printService ?? throw new ArgumentNullException(nameof(printService));
         _disputeLockService = disputeLockService ?? throw new ArgumentNullException(nameof(disputeLockService));
@@ -71,6 +77,87 @@ public partial class JJController : StaffControllerBase
         {
             _logger.LogError(e, "Error retrieving JJ disputes from oracle-data-api");
             return new HttpError(StatusCodes.Status500InternalServerError, e.Message);
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="appearances">Include appearance fields</param>
+    /// <param name="notice_of_hearing_yn">Include notice of hearing flag.</param>
+    /// <param name="multiple_officers_yn">Include multiple officers flag</param>
+    /// <param name="electronic_ticket_yn">Include electronic ticket flag</param>
+    /// <param name="time_zone">The callers time zone</param>
+    /// <param name="submitted_from">Disputes sumbitted on or after this date</param>
+    /// <param name="submitted_thru">Disputes sumbitted on or before this date</param>
+    /// <param name="ticket_number"></param>
+    /// <param name="surname">The case insenstive surname to search for.</param>
+    /// <param name="jj_assigned_to">The JJ assigned user</param>
+    /// <param name="dispute_status_codes">The comma separate list of status codes</param>
+    /// <param name="appearance_courthouse_ids">The comma separate list of agency ids</param>
+    /// <param name="to_be_heard_at_courthouse_ids">The comma separate list of agency ids</param>
+    /// <param name="page_number">The page number to fetch. Starts at 1.</param>
+    /// <param name="page_size">The page size to use. If not specified, defaults to 25</param>
+    /// <param name="sort_by">The list of columns to sort the result by. To sort descending, add a '-' before the column name.</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+#if DEBUG
+    [AllowAnonymous]
+#endif
+    [HttpGet("Disputes/Search")]
+    [ProducesResponseType(typeof(PagedDisputeCaseFileSummaryCollection), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [KeycloakAuthorize(Resources.JJDispute, Scopes.Read)]
+    public async Task<IActionResult> SearchDisputesAsync(
+        bool? appearances,
+        bool? notice_of_hearing_yn,
+        bool? multiple_officers_yn,
+        bool? electronic_ticket_yn,
+        string? time_zone,
+        string? submitted_from,
+        string? submitted_thru,
+        string? ticket_number,
+        string? surname,
+        string? jj_assigned_to,
+        string? dispute_status_codes,
+        string? appearance_courthouse_ids,
+        string? to_be_heard_at_courthouse_ids,
+        string? sort_by,
+        int? page_number,
+        int? page_size,
+        CancellationToken cancellationToken)
+    {
+        Request request = new Request
+        {
+            appearances = appearances,
+            notice_of_hearing_yn = notice_of_hearing_yn,
+            multiple_officers_yn = multiple_officers_yn,
+            electronic_ticket_yn = electronic_ticket_yn,
+            time_zone = time_zone,
+            submitted_from = submitted_from,
+            submitted_thru = submitted_thru,
+            ticket_number  = ticket_number,
+            surname = surname,
+            jj_assigned_to = jj_assigned_to,
+            dispute_status_codes = dispute_status_codes,
+            appearance_courthouse_ids = appearance_courthouse_ids,
+            to_be_heard_at_courthouse_ids = to_be_heard_at_courthouse_ids,
+            sort_by = sort_by,
+            page_number = page_number,
+            page_size = page_size
+        };
+
+        try
+        {
+            var response = await _mediator.Send(request, cancellationToken);
+            return Ok(response.Data);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Error searching JJ disputes");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = exception.Message });
         }
     }
 

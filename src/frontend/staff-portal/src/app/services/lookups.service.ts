@@ -70,7 +70,7 @@ export class LookupsService implements ILookupsService {
      */
   public getStatutes(): Observable<Statute[]> {
 
-    return this.lookupService.apiLookupStatutesGet()
+    return this.lookupService.apiLookupStatutesV2Get()
       .pipe(
         map((response: Statute[]) =>
           response ? response : []

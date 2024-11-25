@@ -53,6 +53,9 @@ public static class Startup
 
         builder.Services.AddFastEndpoints();
 
+
+        builder.Services.AddOrdsDataService(builder.Configuration);
+
         var redisConnectionString = builder.AddRedis();
 
         builder.Services

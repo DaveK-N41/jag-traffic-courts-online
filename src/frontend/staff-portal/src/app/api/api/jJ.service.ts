@@ -25,6 +25,8 @@ import { DocumentType } from '../model/documentType.model';
 // @ts-ignore
 import { JJDispute } from '../model/jJDispute.model';
 // @ts-ignore
+import { PagedDisputeCaseFileSummaryCollection } from '../model/pagedDisputeCaseFileSummaryCollection.model';
+// @ts-ignore
 import { ProblemDetails } from '../model/problemDetails.model';
 // @ts-ignore
 import { TicketImageDataJustinDocument } from '../model/ticketImageDataJustinDocument.model';
@@ -246,6 +248,151 @@ export class JJService {
         }
 
         return this.httpClient.get<Array<JJDispute>>(`${this.configuration.basePath}/api/jj/disputes`,
+            {
+                context: localVarHttpContext,
+                params: localVarQueryParameters,
+                responseType: <any>responseType_,
+                withCredentials: this.configuration.withCredentials,
+                headers: localVarHeaders,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * 
+     * @param appearances Include appearance fields
+     * @param noticeOfHearingYn Include notice of hearing flag.
+     * @param multipleOfficersYn Include multiple officers flag
+     * @param electronicTicketYn Include electronic ticket flag
+     * @param timeZone The callers time zone
+     * @param submittedFrom Disputes sumbitted on or after this date
+     * @param submittedThru Disputes sumbitted on or before this date
+     * @param ticketNumber 
+     * @param surname The case insenstive surname to search for.
+     * @param jjAssignedTo The JJ assigned user
+     * @param disputeStatusCodes The comma separate list of status codes
+     * @param appearanceCourthouseIds The comma separate list of agency ids
+     * @param toBeHeardAtCourthouseIds The comma separate list of agency ids
+     * @param sortBy The list of columns to sort the result by. To sort descending, add a \&#39;-\&#39; before the column name.
+     * @param pageNumber The page number to fetch. Starts at 1.
+     * @param pageSize The page size to use. If not specified, defaults to 25
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public apiJjDisputesSearchGet(appearances?: boolean, noticeOfHearingYn?: boolean, multipleOfficersYn?: boolean, electronicTicketYn?: boolean, timeZone?: string, submittedFrom?: string, submittedThru?: string, ticketNumber?: string, surname?: string, jjAssignedTo?: string, disputeStatusCodes?: string, appearanceCourthouseIds?: string, toBeHeardAtCourthouseIds?: string, sortBy?: string, pageNumber?: number, pageSize?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<PagedDisputeCaseFileSummaryCollection>;
+    public apiJjDisputesSearchGet(appearances?: boolean, noticeOfHearingYn?: boolean, multipleOfficersYn?: boolean, electronicTicketYn?: boolean, timeZone?: string, submittedFrom?: string, submittedThru?: string, ticketNumber?: string, surname?: string, jjAssignedTo?: string, disputeStatusCodes?: string, appearanceCourthouseIds?: string, toBeHeardAtCourthouseIds?: string, sortBy?: string, pageNumber?: number, pageSize?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<PagedDisputeCaseFileSummaryCollection>>;
+    public apiJjDisputesSearchGet(appearances?: boolean, noticeOfHearingYn?: boolean, multipleOfficersYn?: boolean, electronicTicketYn?: boolean, timeZone?: string, submittedFrom?: string, submittedThru?: string, ticketNumber?: string, surname?: string, jjAssignedTo?: string, disputeStatusCodes?: string, appearanceCourthouseIds?: string, toBeHeardAtCourthouseIds?: string, sortBy?: string, pageNumber?: number, pageSize?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<PagedDisputeCaseFileSummaryCollection>>;
+    public apiJjDisputesSearchGet(appearances?: boolean, noticeOfHearingYn?: boolean, multipleOfficersYn?: boolean, electronicTicketYn?: boolean, timeZone?: string, submittedFrom?: string, submittedThru?: string, ticketNumber?: string, surname?: string, jjAssignedTo?: string, disputeStatusCodes?: string, appearanceCourthouseIds?: string, toBeHeardAtCourthouseIds?: string, sortBy?: string, pageNumber?: number, pageSize?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        if (appearances !== undefined && appearances !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>appearances, 'appearances');
+        }
+        if (noticeOfHearingYn !== undefined && noticeOfHearingYn !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>noticeOfHearingYn, 'notice_of_hearing_yn');
+        }
+        if (multipleOfficersYn !== undefined && multipleOfficersYn !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>multipleOfficersYn, 'multiple_officers_yn');
+        }
+        if (electronicTicketYn !== undefined && electronicTicketYn !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>electronicTicketYn, 'electronic_ticket_yn');
+        }
+        if (timeZone !== undefined && timeZone !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>timeZone, 'time_zone');
+        }
+        if (submittedFrom !== undefined && submittedFrom !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>submittedFrom, 'submitted_from');
+        }
+        if (submittedThru !== undefined && submittedThru !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>submittedThru, 'submitted_thru');
+        }
+        if (ticketNumber !== undefined && ticketNumber !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>ticketNumber, 'ticket_number');
+        }
+        if (surname !== undefined && surname !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>surname, 'surname');
+        }
+        if (jjAssignedTo !== undefined && jjAssignedTo !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>jjAssignedTo, 'jj_assigned_to');
+        }
+        if (disputeStatusCodes !== undefined && disputeStatusCodes !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>disputeStatusCodes, 'dispute_status_codes');
+        }
+        if (appearanceCourthouseIds !== undefined && appearanceCourthouseIds !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>appearanceCourthouseIds, 'appearance_courthouse_ids');
+        }
+        if (toBeHeardAtCourthouseIds !== undefined && toBeHeardAtCourthouseIds !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>toBeHeardAtCourthouseIds, 'to_be_heard_at_courthouse_ids');
+        }
+        if (sortBy !== undefined && sortBy !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>sortBy, 'sort_by');
+        }
+        if (pageNumber !== undefined && pageNumber !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>pageNumber, 'page_number');
+        }
+        if (pageSize !== undefined && pageSize !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>pageSize, 'page_size');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        let localVarCredential: string | undefined;
+        // authentication (Bearer) required
+        localVarCredential = this.configuration.lookupCredential('Bearer');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', localVarCredential);
+        }
+
+        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'text/plain',
+                'application/json',
+                'text/json'
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        let localVarHttpContext: HttpContext | undefined = options && options.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        return this.httpClient.get<PagedDisputeCaseFileSummaryCollection>(`${this.configuration.basePath}/api/jj/disputes/search`,
             {
                 context: localVarHttpContext,
                 params: localVarQueryParameters,
@@ -649,10 +796,10 @@ export class JJService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public apiJjTicketNumberPrintGet(ticketNumber: string, timeZone: string, type?: DcfTemplateType, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any>;
-    public apiJjTicketNumberPrintGet(ticketNumber: string, timeZone: string, type?: DcfTemplateType, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<any>>;
-    public apiJjTicketNumberPrintGet(ticketNumber: string, timeZone: string, type?: DcfTemplateType, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<any>>;
-    public apiJjTicketNumberPrintGet(ticketNumber: string, timeZone: string, type?: DcfTemplateType, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+    public apiJjTicketNumberPrintGet(ticketNumber: string, timeZone: string, type?: DcfTemplateType, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/octet-stream' | 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Blob>;
+    public apiJjTicketNumberPrintGet(ticketNumber: string, timeZone: string, type?: DcfTemplateType, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/octet-stream' | 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Blob>>;
+    public apiJjTicketNumberPrintGet(ticketNumber: string, timeZone: string, type?: DcfTemplateType, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/octet-stream' | 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Blob>>;
+    public apiJjTicketNumberPrintGet(ticketNumber: string, timeZone: string, type?: DcfTemplateType, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/octet-stream' | 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
         if (ticketNumber === null || ticketNumber === undefined) {
             throw new Error('Required parameter ticketNumber was null or undefined when calling apiJjTicketNumberPrintGet.');
         }
@@ -683,6 +830,7 @@ export class JJService {
         if (localVarHttpHeaderAcceptSelected === undefined) {
             // to determine the Accept header
             const httpHeaderAccepts: string[] = [
+                'application/octet-stream',
                 'text/plain',
                 'application/json',
                 'text/json'
@@ -699,22 +847,11 @@ export class JJService {
         }
 
 
-        let responseType_: 'text' | 'json' | 'blob' = 'json';
-        if (localVarHttpHeaderAcceptSelected) {
-            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-                responseType_ = 'text';
-            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-                responseType_ = 'json';
-            } else {
-                responseType_ = 'blob';
-            }
-        }
-
-        return this.httpClient.get<any>(`${this.configuration.basePath}/api/jj/${this.configuration.encodeParam({name: "ticketNumber", value: ticketNumber, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}/print`,
+        return this.httpClient.get(`${this.configuration.basePath}/api/jj/${this.configuration.encodeParam({name: "ticketNumber", value: ticketNumber, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}/print`,
             {
                 context: localVarHttpContext,
                 params: localVarQueryParameters,
-                responseType: <any>responseType_,
+                responseType: "blob",
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,
                 observe: observe,
@@ -893,7 +1030,7 @@ export class JJService {
     /**
      * Updates the status of a particular JJDispute record to REQUIRE_COURT_HEARING, hearing type to COURT_APPEARANCE as well as adds an optional remark that explaining why the status was set.
      * @param ticketNumber Unique identifier for a specific JJ Dispute record.
-     * @param remark 
+     * @param remark The remark or note (max 256 characters) the JJDispute was set to REVIEW.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
@@ -981,7 +1118,7 @@ export class JJService {
      * Updates the status of a particular JJDispute record to REVIEW as well as adds an optional remark that explaining why the status was set to REVIEW.
      * @param ticketNumber Unique identifier for a specific JJ Dispute record.
      * @param checkVTC boolean to indicate need to check VTC assigned.
-     * @param remark 
+     * @param remark The remark or note (max 256 characters) the JJDispute was set to REVIEW.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */

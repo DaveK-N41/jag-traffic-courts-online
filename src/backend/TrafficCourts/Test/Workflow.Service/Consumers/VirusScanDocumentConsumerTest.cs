@@ -1,27 +1,27 @@
 ﻿using MassTransit;
 using MassTransit.Testing;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using nClam;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using TrafficCourts.Common.OpenAPIs.VirusScan.V1;
 using TrafficCourts.Messaging.MessageContracts;
 using TrafficCourts.Workflow.Service.Consumers;
 using TrafficCourts.Workflow.Service.Services;
 using Xunit;
-using ApiException = TrafficCourts.Common.OpenAPIs.VirusScan.V1.ApiException;
 
 namespace TrafficCourts.Test.Workflow.Service.Consumers;
 
 public class ScanUploadedDocumentForVirusesConsumerTest
 {
-    [Fact(Skip = "Failing in githut actions but not locally")]
+    private const string? skip = "Failing in githut actions but not locally"; // 
+
+    [Fact(Skip = skip)]
     public async Task TestVirusScanDocumentConsumer_ConfirmScanResultClean()
     {
-        Mock<IVirusScanClient> virusScanClient = new();
+        Mock<IClamClient> clamClient = new();
         Mock<IWorkflowDocumentService> comsService = new();
 
         // Arrange
@@ -31,13 +31,13 @@ public class ScanUploadedDocumentForVirusesConsumerTest
             .SetupGetFileWithAnyParameters()
             .Returns(Task.FromResult(file));
 
-        virusScanClient
-            .VirusScanWithAnyParameters()
-            .Returns(Task.FromResult(new VirusScanResult { Status = VirusScanStatus.NotInfected }));
+        clamClient
+            .SendAndScanFileWithAnyParameters()
+            .Returns(Task.FromResult(new ClamScanResult("ok")));
 
         // comsService.UpdateFileAsync ...
 
-        await using var provider = GetServiceProvider(virusScanClient.Object, comsService.Object);
+        await using var provider = GetServiceProvider(clamClient.Object, comsService.Object);
 
         // Act
         var harness = await PublishAsync(provider, new DocumentUploaded { Id = file.Id!.Value });
@@ -49,15 +49,15 @@ public class ScanUploadedDocumentForVirusesConsumerTest
 
         comsService.VerifyGetFile(file.Id!.Value);
 
-        virusScanClient.VerifyVirusScan(file.Data);
+        clamClient.VerifyVirusScan(file.Data);
 
         // verify UpdateFile meta data
     }
 
-    [Fact(Skip = "Failing in githut actions but not locally")]
+    [Fact(Skip = skip)]
     public async Task TestVirusScanDocumentConsumer_ConfirmScanResultInfected()
     {
-        Mock<IVirusScanClient> virusScanClient = new();
+        Mock<IClamClient> virusScanClient = new();
         Mock<IWorkflowDocumentService> comsService = new();
 
         // Arrange
@@ -68,8 +68,8 @@ public class ScanUploadedDocumentForVirusesConsumerTest
             .Returns(Task.FromResult(file));
 
         virusScanClient
-            .VirusScanWithAnyParameters()
-            .Returns(Task.FromResult(new VirusScanResult { Status = VirusScanStatus.Infected, VirusName = "cryptolocker" }));
+            .SendAndScanFileWithAnyParameters() //  
+            .Returns(Task.FromResult(new ClamScanResult("cryptolocker found")));
 
         // comsService.UpdateFileAsync ...
 
@@ -92,10 +92,10 @@ public class ScanUploadedDocumentForVirusesConsumerTest
 
     }
 
-    [Fact(Skip = "Failing in githut actions but not locally")]
+    [Fact(Skip = skip)]
     public async Task TestVirusScanDocumentConsumer_ConfirmScanResultUnknown()
     {
-        Mock<IVirusScanClient> virusScanClient = new();
+        Mock<IClamClient> virusScanClient = new();
         Mock<IWorkflowDocumentService> comsService = new();
 
         // Arrange
@@ -106,8 +106,8 @@ public class ScanUploadedDocumentForVirusesConsumerTest
             .Returns(Task.FromResult(file));
 
         virusScanClient
-            .VirusScanWithAnyParameters()
-            .Returns(Task.FromResult(new VirusScanResult { Status = VirusScanStatus.Error }));
+            .SendAndScanFileWithAnyParameters()
+            .Returns(Task.FromResult(new ClamScanResult("error")));
 
         await using var provider = GetServiceProvider(virusScanClient.Object, comsService.Object);
 
@@ -126,51 +126,13 @@ public class ScanUploadedDocumentForVirusesConsumerTest
         // verify UpdateFile meta data
     }
 
-
-    [Fact(Skip = "Failing in githut actions but not locally")]
-    public async Task TestVirusScanDocumentConsumer_ThrowsApiException()
-    {
-        Mock<IWorkflowDocumentService> comsService = new();
-        Mock<IVirusScanClient> virusScanClient = new();
-
-        // Arrange
-        var file = CreateFile();
-
-        comsService
-            .SetupGetFileWithAnyParameters()
-            .Returns(Task.FromResult(file));
-
-        var exception = new ApiException("[Unit Test Expected]: There was an internal error virus scanning the file.", StatusCodes.Status500InternalServerError, It.IsAny<string>(), null, null);
-        virusScanClient
-            .VirusScanWithAnyParameters()
-            .Throws(exception);
-
-        await using var provider = GetServiceProvider(virusScanClient.Object, comsService.Object);
-
-        // Act
-        var harness = await PublishAsync(provider, new DocumentUploaded { Id = file.Id!.Value });
-        // note the consumer will not execute until we this completes
-        var consumed = await harness.Consumed.Any<DocumentUploaded>();
-        var published = await harness.Published.SelectAsync<Fault<DocumentUploaded>>().Count();
-
-        // Assert
-        Assert.True(consumed);
-        Assert.Equal(1, published);
-
-        comsService.VerifyGetFile(file.Id!.Value);
-
-        virusScanClient.VerifyVirusScan(file.Data);
-
-        comsService.VerifySaveDocumentProperties(Times.Never());
-    }
-
     /// <summary>
     /// Gets the ServiceProvider with all the registered services 
     /// </summary>
-    /// <param name="virusScanClient"></param>
+    /// <param name="clamClient"></param>
     /// <param name="comsService"></param>
     /// <returns></returns>
-    private static ServiceProvider GetServiceProvider(IVirusScanClient virusScanClient, IWorkflowDocumentService comsService)
+    private static ServiceProvider GetServiceProvider(IClamClient clamClient, IWorkflowDocumentService comsService)
     {
         return new ServiceCollection()
             .AddMassTransitTestHarness(cfg =>
@@ -182,7 +144,7 @@ public class ScanUploadedDocumentForVirusesConsumerTest
                 });
             })
             .AddScoped(sp => comsService)
-            .AddScoped(sp => virusScanClient)
+            .AddScoped(sp => clamClient)
             .AddScoped(sp => Mock.Of<ILogger<ScanUploadedDocumentForVirusesConsumer>>())
             .BuildServiceProvider(true);
     }

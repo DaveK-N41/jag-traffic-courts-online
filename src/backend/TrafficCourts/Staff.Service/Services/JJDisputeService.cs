@@ -1,5 +1,8 @@
 using MassTransit;
+using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Security.Claims;
+using TrafficCourts.Collections;
 using TrafficCourts.Common.Features.Lookups;
 using TrafficCourts.Common.OpenAPIs.Keycloak;
 using TrafficCourts.Common.OpenAPIs.Keycloak.v22_0;
@@ -12,6 +15,222 @@ using TrafficCourts.Staff.Service.Mappers;
 using JJDisputeStatus = TrafficCourts.Domain.Models.JJDisputeStatus;
 
 namespace TrafficCourts.Staff.Service.Services;
+
+public class GetJJDisputeSummaryParameters : IPagable, ISortable
+{
+    #region Filtering
+
+    /// <summary>
+    /// The IANA timze zone id
+    /// </summary>
+    /// <remarks>
+    /// Browser can supply this value from Intl.DateTimeFormat().resolvedOptions().timeZone
+    /// and returns a value like America/Vancouver
+    /// </remarks>
+    [FromQuery(Name = "timeZone")]
+    public string? TimeZone { get; set; }
+
+    #region Decision Date
+    /// <summary>
+    /// </summary>
+    [FromQuery(Name = "decisionDateFrom")]
+    public DateTime? DecisionDateFrom { get; set; }
+
+    /// <summary>
+    /// </summary>
+    [FromQuery(Name = "decisionDateThru")]
+    public DateTime? DecisionDateThru { get; set; }
+    #endregion
+
+    #region Date Submitted
+    /// <summary>
+    /// </summary>
+    [FromQuery(Name = "dateSubmittedFrom")]
+    public DateTime? DateSubmittedFrom { get; set; }
+
+    /// <summary>
+    /// </summary>
+    [FromQuery(Name = "dateSubmittedThru")]
+    public DateTime? DateSubmittedThru { get; set; }
+    #endregion
+
+    /// <summary>
+    /// </summary>
+    [FromQuery(Name = "ticketNumber")]
+    public string? TicketNumber { get; set; }
+
+    /// <summary>
+    /// </summary>
+    [FromQuery(Name = "surname")]
+    public string? Surname { get; set; }
+
+    /// <summary>
+    /// dispute_status_type Accepted etc
+    /// </summary>
+    [FromQuery(Name = "status")]
+    public List<string>? Status { get; set; }
+
+    /// <summary>
+    /// The courthouse agency id
+    /// </summary>
+    [FromQuery(Name = "courthouseId")]
+    public List<decimal>? CourthouseId { get; set; }
+
+    #endregion
+
+    #region Sorting
+    /// <summary>
+    /// The optional sort by contains the attribute name to sort. The data is sorted on the attribute.
+    /// </summary>
+    [FromQuery(Name = "sortBy")]
+    public List<string>? SortBy { get; set; }
+
+    /// <summary>
+    /// The optional sort direction contains the asc or desc. The data is sorted by given direction.
+    /// </summary>
+    [FromQuery(Name = "direction")]
+    public List<SortDirection>? SortDirection { get; set; }
+    #endregion
+
+    #region Paging
+    /// <summary>
+    /// The optional page number gives the records from given page
+    /// </summary>
+    [FromQuery(Name = "pageNumber")]
+    public int? PageNumber { get; set; } = 1;
+
+    /// <summary>
+    /// The optional page size sets the record count
+    /// </summary>
+    [FromQuery(Name = "pageSize")]
+    public int? PageSize { get; set; } = 25;
+
+    #endregion
+}
+
+public static class GetJJDisputeSummaryParametersExtensions2
+{
+    /// <summary>
+    /// Maps the UI sort fields to one or more database fields for sorting.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> _orderByMapping;
+
+    static GetJJDisputeSummaryParametersExtensions2()
+    {
+        Dictionary<string, IReadOnlyList<string>> mapping = new()
+        {
+            { "ticketNumber", ["ticket_number_txt"] },
+            { "name", ["prof_surname_nm", "prof_given_1_nm"] },
+            { "violationDate", ["violation_dt"] },
+            { "submittedDate", ["submitted_dt"] },
+            { "decisionDate", ["jj_decision_dt"] },
+            { "courthouse", ["courthouse_agen_nm"] },
+            { "status", ["dispute_status_type_dsc"] },
+            { "signedBy", ["signed_by"] },
+            { "assigned", ["jj_assigned_to"] }
+        };
+
+        _orderByMapping = mapping.AsReadOnly();
+    }
+
+    public static IReadOnlyDictionary<string, string> GetParameters(this GetJJDisputeSummaryParameters parameters)
+    {
+        Dictionary<string, string> result = new Dictionary<string, string>();
+
+        // filtering
+        AddDateDateRange(result, "jj_decision_dt", parameters.DecisionDateFrom, parameters.DecisionDateThru, parameters.TimeZone);
+        AddDateDateRange(result, "submitted_dt", parameters.DateSubmittedFrom, parameters.DateSubmittedThru, parameters.TimeZone);
+        AddIfNotNullOrEmpty(result, "ticket_number_txt_eq", parameters.TicketNumber);
+        AddIfNotNullOrEmpty(result, "prof_surname_nm_eq", parameters.Surname);
+        AddIfNotNullOrEmpty(result, "dispute_status_type_cd_in", parameters.Status);
+        AddIfNotNullOrEmpty(result, "courthouse_agen_id_in", parameters.CourthouseId);
+
+        // sorting
+        AddIfNotNullOrEmpty(result, "order", parameters.GetSortBy(_orderByMapping));
+
+        // paging
+        AddIfNotNullOrEmpty(result, "offset_rows", parameters.GetOffsetRows());
+        AddIfNotNullOrEmpty(result, "fetch_rows", parameters.GetFetchRows());
+
+        return result.AsReadOnly();
+    }
+
+    private static void AddIfNotNullOrEmpty(this Dictionary<string, string> result, string key, List<string>? values)
+    {
+        if (values is { Count: > 0 })
+        {
+            result.Add(key, string.Join(",", values));
+        }
+    }
+
+    private static void AddIfNotNullOrEmpty(this Dictionary<string, string> result, string key, List<decimal>? values)
+    {
+        if (values is { Count: > 0 })
+        {
+            result.Add(key, string.Join(",", values));
+        }
+    }
+
+    private static void AddIfNotNullOrEmpty(this Dictionary<string, string> result, string key, string? value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            result.Add(key, value);
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="result"></param>
+    /// <param name="key">They filter key without the </param>
+    /// <param name="from"></param>
+    /// <param name="thru"></param>
+    /// <param name="timeZoneId"></param>
+    private static void AddDateDateRange(this Dictionary<string, string> result, string key, DateTime? from, DateTime? thru, string? timeZoneId)
+    {
+        if (from.HasValue || thru.HasValue)
+        {
+            TimeZoneInfo timeZoneInfo = GetTimeZoneInfo(timeZoneId);
+
+            if (from.HasValue)
+            {
+                DateTime utc = ToUtc(from.Value.Date, timeZoneInfo);
+                result.Add($"{key}_ge", utc.ToString("yyyy-MM-ddTHH:mm:ss"));
+            }
+
+            if (thru.HasValue)
+            {
+                thru = thru.Value.Date.AddDays(1);
+                DateTime utc = ToUtc(thru.Value, timeZoneInfo);
+                result.Add($"{key}_lt", utc.ToString("yyyy-MM-ddTHH:mm:ss"));
+            }
+        }
+    }
+
+    private static DateTime ToUtc(DateTime localDate, TimeZoneInfo timeZoneInfo)
+    {
+        localDate = DateTime.SpecifyKind(localDate, DateTimeKind.Unspecified);
+        DateTime utcDate = TimeZoneInfo.ConvertTimeToUtc(localDate, timeZoneInfo);
+        return utcDate;
+    }
+
+    private static TimeZoneInfo GetTimeZoneInfo(string? timeZoneId)
+    {
+        if (!string.IsNullOrEmpty(timeZoneId) && TimeZoneInfo.TryFindSystemTimeZoneById(timeZoneId, out TimeZoneInfo? timeZoneInfo))
+        {
+            return timeZoneInfo;
+        }
+
+        return _vancouver;
+    }
+
+    /// <summary>
+    /// America/Vancouver <see href="https://nodatime.org/TimeZones"/>
+    /// </summary>
+    private static readonly TimeZoneInfo _vancouver = TimeZoneInfo.FindSystemTimeZoneById("America/Vancouver");
+}
+
 
 /// <summary>
 /// Summary description for Class1

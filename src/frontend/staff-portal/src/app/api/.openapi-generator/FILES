@@ -22,6 +22,7 @@ model/credentialRepresentation.model.ts
 model/dcfTemplateType.model.ts
 model/dispute.model.ts
 model/disputeAppearanceLessThan14DaysYn.model.ts
+model/disputeCaseFileSummary.model.ts
 model/disputeContactTypeCd.model.ts
 model/disputeCount.model.ts
 model/disputeCountPleaCode.model.ts
@@ -92,6 +93,7 @@ model/language.model.ts
 model/lock.model.ts
 model/models.ts
 model/ocrViolationTicket.model.ts
+model/pagedDisputeCaseFileSummaryCollection.model.ts
 model/pagedDisputeListItemCollection.model.ts
 model/permission.model.ts
 model/point.model.ts
@@ -114,5 +116,6 @@ model/violationTicketIsDriver.model.ts
 model/violationTicketIsOwner.model.ts
 model/violationTicketIsYoungPerson.model.ts
 model/violationTicketVersion.model.ts
+model/yesNo.model.ts
 param.ts
 variables.ts

@@ -61,7 +61,6 @@
 
 	<Target Name="NSwag" BeforeTargets="BeforeBuild">
 		<Exec Command="$(NSwagExe_Net80) run OpenAPIs/Keycloak/v18_0/keycloak-admin-api.nswag" />
-		<Exec Command="$(NSwagExe_Net80) run OpenAPIs/VirusScan/v1/VirusScan.nswag" />
 	</Target>
 
 	<ItemGroup>

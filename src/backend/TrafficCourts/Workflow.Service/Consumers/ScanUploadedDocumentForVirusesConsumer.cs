@@ -1,10 +1,9 @@
 ﻿using MassTransit;
+using nClam;
 using System.Diagnostics;
-using TrafficCourts.Common.OpenAPIs.VirusScan.V1;
 using TrafficCourts.Coms.Client;
 using TrafficCourts.Messaging.MessageContracts;
 using TrafficCourts.Workflow.Service.Services;
-using ApiException = TrafficCourts.Common.OpenAPIs.VirusScan.V1.ApiException;
 
 namespace TrafficCourts.Workflow.Service.Consumers
 {
@@ -13,14 +12,18 @@ namespace TrafficCourts.Workflow.Service.Consumers
     /// </summary>
     public class ScanUploadedDocumentForVirusesConsumer : IConsumer<DocumentUploaded>
     {
-        private readonly IVirusScanClient _virusScan;
         private readonly IWorkflowDocumentService _documentService;
+        private readonly IClamClient _clamClient;
         private readonly ILogger<ScanUploadedDocumentForVirusesConsumer> _logger;
 
-        public ScanUploadedDocumentForVirusesConsumer(IVirusScanClient virusScan, IWorkflowDocumentService comsService, ILogger<ScanUploadedDocumentForVirusesConsumer> logger)
+
+        public ScanUploadedDocumentForVirusesConsumer(
+            IWorkflowDocumentService comsService,
+            IClamClient clamClient,
+            ILogger<ScanUploadedDocumentForVirusesConsumer> logger)
         {
-            _virusScan = virusScan ?? throw new ArgumentNullException(nameof(virusScan));
             _documentService = comsService ?? throw new ArgumentNullException(nameof(comsService));
+            _clamClient = clamClient ?? throw new ArgumentNullException(nameof(clamClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -38,7 +41,7 @@ namespace TrafficCourts.Workflow.Service.Consumers
             Debug.Assert(file.Id == documentId);
 
             // scan the file for viruses
-            VirusScanResult scanResult = await ScanFileForVirusesAsync(file, cancellationToken);
+            ClamScanResult scanResult = await _clamClient.SendAndScanFileAsync(file.Data, cancellationToken);
 
             // check if we should update the meta data
             var newProperties = GetUpdatedDocumentProperties(scanResult, file);
@@ -66,53 +69,31 @@ namespace TrafficCourts.Workflow.Service.Consumers
             }
         }
 
-        private async Task<VirusScanResult> ScanFileForVirusesAsync(Coms.Client.File file, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var stream = file.Data;
-                var parameter = new Common.OpenAPIs.VirusScan.V1.FileParameter(stream);
-
-                // Virus scan the file and get scan result
-                _logger.LogDebug("Sending the file: {fileId} for virus scan", file.Id);
-                VirusScanResult scanResult = await _virusScan.VirusScanAsync(parameter, cancellationToken);
-
-                _logger.LogDebug("Virus scan result {VirusScanResult}", scanResult);
-
-                return scanResult;
-            }
-            catch (ApiException exception)
-            {
-                _logger.LogError(exception, "Error calling virus scan service");
-                throw new DocumentVirusScanConsumerException("Error calling virus scan service", exception);
-            }
-        }
-
         /// <summary>
         /// Gets the updated document properties or null of nothing was changed.
         /// </summary>
         /// <param name="scanResult"></param>
         /// <param name="file"></param>
         /// <returns></returns>
-        private Domain.Models.DocumentProperties? GetUpdatedDocumentProperties(VirusScanResult scanResult, Coms.Client.File file)
+        private Domain.Models.DocumentProperties? GetUpdatedDocumentProperties(ClamScanResult scanResult, Coms.Client.File file)
         {
             var properties = new Domain.Models.DocumentProperties(file.Metadata, file.Tags);
 
-            if (scanResult.Status == VirusScanStatus.NotInfected)
+            if (scanResult.Result == ClamScanResults.Clean)
             {
                 _logger.LogDebug("No viruses detected as a result of the scan");
                 properties.SetVirusScanNotInfected();
                 return properties;
             }
-            else if (scanResult.Status == VirusScanStatus.Infected)
+            else if (scanResult.Result == ClamScanResults.VirusDetected)
             {
-                string virusName = scanResult.VirusName;
+                string virusName = scanResult.InfectedFiles[0].VirusName;
                 _logger.LogDebug("The document with id {documentId} is infected with virus {virusName}", file.Id, virusName);
                 // Virus detected so add "infected" as virus-scan-status metadata as well as the virus name to the document
                 properties.SetVirusScanInfected(virusName);
                 return properties;
             }
-            else if (scanResult.Status == VirusScanStatus.Error)
+            else if (scanResult.Result == ClamScanResults.Error)
             {
                 _logger.LogDebug("Could not determine the virus status of the document");
                 properties.SetVirusScanError();
@@ -120,7 +101,7 @@ namespace TrafficCourts.Workflow.Service.Consumers
             }
 
             // unknown status
-            _logger.LogWarning("Unknown virus scan status {Status}, file metadata will not be updated.", scanResult.Status);
+            _logger.LogWarning("Unknown virus scan status {Status}, file metadata will not be updated.", scanResult.Result);
             return null; // did not update metadata
         }
 
