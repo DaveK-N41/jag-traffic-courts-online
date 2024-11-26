@@ -259,7 +259,7 @@ staff-web:
     {
         "production": false,
         "environment": "Test",
-        "version": "2.5.1",
+        "version": "2.5.2",
         "useMockServices": false,
         "apiBaseUrl": "/api",
         "features": {
