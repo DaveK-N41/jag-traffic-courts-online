@@ -9,9 +9,11 @@
  */
 
 
-export interface IcbcNameDetail { 
-    surname?: string | null;
-    firstGivenName?: string | null;
-    secondGivenName?: string | null;
-}
+export type YesNo = 'Unknown' | 'Yes' | 'No';
+
+export const YesNo = {
+    Unknown: 'Unknown' as YesNo,
+    Yes: 'Yes' as YesNo,
+    No: 'No' as YesNo
+};
 
