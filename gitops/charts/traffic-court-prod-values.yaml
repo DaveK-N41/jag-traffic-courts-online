@@ -263,7 +263,7 @@ staff-web:
   pdb:
     create: true
   image:
-    tag: "2.5.1"
+    tag: "2.5.2"
     pullPolicy: Always
   route:
     # https://test.jag.gov.bc.ca
