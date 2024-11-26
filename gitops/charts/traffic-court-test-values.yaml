@@ -331,7 +331,7 @@ workflow-service:
     "MassTransit__Transport": "RabbitMq"
     "RabbitMq__UseQuorumQueues": "true"
     "COMS__BASEURL": "http://common-object-management-service:3000"
-    "VIRUSSCAN__BASEURL": "http://virus-scan:8080"
+    "ClamAV__Server": "clamav.0198bb-test.svc.cluster.local"
   saga:
     db:
       secretName: "postgres-app-pguser-masstransit"
