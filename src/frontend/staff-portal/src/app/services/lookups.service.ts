@@ -233,7 +233,7 @@ export class LookupsService implements ILookupsService {
       */
   public getCourthouseAgencies(): Observable<Agency[]> {
 
-    return this.lookupService.apiLookupAgenciesGet()
+    return this.lookupService.apiLookupAgenciesV2Get()
       .pipe(
         map((response: Agency[]) =>
           response ? response : []

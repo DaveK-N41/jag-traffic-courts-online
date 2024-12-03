@@ -1,7 +1,9 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { TableFilter, TableFilterConfigs, TableFilterKeys } from '@shared/models/table-filter-options.model';
 import { DisputeStatus } from 'app/api';
+import { LookupsService } from 'app/services/lookups.service';
 import { TableFilterService } from 'app/services/table-filter.service';
+import { IDropdownSettings } from 'ng-multiselect-dropdown';
 
 @Component({
   selector: 'app-table-filters',
@@ -18,13 +20,24 @@ export class TableFiltersComponent implements OnInit {
 
   dataFilters: TableFilter;
   tableFilterConfigs: TableFilterConfigs = {};
+  courtHouseSettings: IDropdownSettings = {};
 
   constructor(
-    private tableFilterService: TableFilterService
+    private tableFilterService: TableFilterService,
+    public lookupsService: LookupsService
   ) {
   }
 
   ngOnInit(): void {
+    this.courtHouseSettings = {
+      singleSelection: false,
+      idField: 'id',
+      textField: 'name',
+      selectAllText: 'Select All',
+      unSelectAllText: 'UnSelect All',
+      itemsShowLimit: 1,
+      allowSearchFilter: true
+    };
     this.tableFilterKeys?.forEach(key => {
       this.tableFilterConfigs[key] = true;
     })
@@ -45,13 +58,20 @@ export class TableFiltersComponent implements OnInit {
   }
 
   // called on keyup in filter field
-  onApplyFilter(filterName: string, value: string) {
+  onApplyFilter(filterName: string, value: any) {
     if (value === undefined && filterName.toUpperCase().includes('DATE')) {
       value = "";
     }
+    if(filterName !== 'courthouseLocation') {
+      const filterValue = value;
+      this.dataFilters[filterName] = filterValue;
+      this.tableFilterService.tableFilters[this.tabIndex] = this.dataFilters;      
+    }
+    this.onFilterChanged.emit(this.dataFilters); 
+  }
 
-    const filterValue = value;
-    this.dataFilters[filterName] = filterValue;
+  onSelectOrDeselectAllCourthouseLocations(selectedItems: any) {
+    this.dataFilters.courthouseLocation = selectedItems;
     this.tableFilterService.tableFilters[this.tabIndex] = this.dataFilters;
     this.onFilterChanged.emit(this.dataFilters);
   }

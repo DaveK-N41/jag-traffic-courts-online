@@ -1,19 +1,20 @@
 import { Component, OnInit, ViewChild, AfterViewInit, Output, EventEmitter, Input } from '@angular/core';
 import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
-import { MatSort } from '@angular/material/sort';
-import { JJDispute } from 'app/services/jj-dispute.service';
-import { JJDisputeHearingType } from 'app/api';
+import { MatSort, Sort } from '@angular/material/sort';
+import { JJDispute, JJDisputeService } from 'app/services/jj-dispute.service';
+import { DisputeCaseFileSummary, JJDisputeHearingType, JJDisputeStatus, PagedDisputeCaseFileSummaryCollection, SortDirection } from 'app/api';
 import { Observable, Subscription } from 'rxjs';
 import { DateUtil } from '@shared/utils/date-util';
 import { TableFilter, TableFilterKeys } from '@shared/models/table-filter-options.model';
 import { TableFilterService } from 'app/services/table-filter.service';
+import { LoggerService } from '@core/services/logger.service';
 
 @Component({
   selector: 'app-jj-dispute-digital-case-file',
   templateUrl: './jj-dispute-digital-case-file.component.html',
   styleUrls: ['./jj-dispute-digital-case-file.component.scss']
 })
-export class JJDisputeDigitalCaseFileComponent implements OnInit, AfterViewInit {
+export class JJDisputeDigitalCaseFileComponent implements OnInit {
   @Input() data$: Observable<JJDispute[]>;
   @Input() tabIndex: number;
   @Output() jjDisputeInfo: EventEmitter<JJDispute> = new EventEmitter();
@@ -22,37 +23,67 @@ export class JJDisputeDigitalCaseFileComponent implements OnInit, AfterViewInit 
   HearingType = JJDisputeHearingType;
   jjAssignedToFilter: string;
   filterText: string;
-  // data = [] as JJDispute[];
-  dataSource: MatTableDataSource<JJDispute> = new MatTableDataSource();
-  tableFilterKeys: TableFilterKeys[] = ["dateSubmittedFrom", "dateSubmittedTo", "occamDisputantName", "courthouseLocation", "ticketNumber"];
+  tcoDisputes: DisputeCaseFileSummary[] = [];
+  tcoDisputesCollection: PagedDisputeCaseFileSummaryCollection = {};
+  dataSource = new MatTableDataSource(this.tcoDisputes);
+  tableFilterKeys: TableFilterKeys[] = ["dateSubmittedFrom", "dateSubmittedTo", "occamDisputantName", 
+    "courthouseLocation", "ticketNumber"];
 
   displayedColumns: string[] = [
     "ticketNumber",
     "submittedTs",
     "violationDate",
-    "occamDisputantName",
-    "courthouseLocation",
-    "status",
+    "disputantSurname",
+    "toBeHeardAtCourthouseName",
+    "disputeStatusDescription",
   ];
-  subscription: Subscription;
+  currentPage: number = 1;
+  totalPages: number = 1;
+  sortBy: string = "submittedTs";
+  sortDirection: SortDirection = SortDirection.Desc;
+  filters: TableFilter = new TableFilter();
+  jjDisputeStatus = JJDisputeStatus;
 
   constructor(
     private tableFilterService: TableFilterService,
+    private jjDisputeService: JJDisputeService,
+    private logger: LoggerService
   ) {
-    this.dataSource.filterPredicate = this.searchFilter;
   }
 
   ngOnInit(): void {    
-    if (!this.subscription) {
-      this.subscription = this.data$.subscribe(data => {
-        this.dataSource.data = data;
-        this.onApplyFilter(this.tableFilterService.tableFilters[this.tabIndex]);
-      });
-    }
+    let dataFilter: TableFilter = this.tableFilterService.tableFilters[this.tabIndex];
+    dataFilter.status = dataFilter.status ?? "";
+    this.filters = dataFilter; 
+    this.getTCODisputes();    
   }
 
-  ngAfterViewInit() {
-    this.dataSource.sort = this.sort;
+  getTCODisputes() {
+    this.logger.log('JJDisputeDigitalCaseFileComponent::getTCODisputes');
+    const params = {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      submittedFrom: this.filters.dateSubmittedFrom,
+      submittedThru: this.filters.dateSubmittedTo,
+      ticketNumber: this.filters.ticketNumber ? this.filters.ticketNumber.toUpperCase() : "",
+      surname: this.filters.occamDisputantName ?? "",
+      toBeHeardAtCourthouseIds: this.filters.courthouseLocation && this.filters.courthouseLocation.length > 0 ? 
+        this.filters.courthouseLocation.map(x => x.id).join(",") : "",
+      sortBy: this.sortDirection === SortDirection.Asc ? this.sortBy : "-" + this.sortBy,
+      pageNumber: this.currentPage,
+      pageSize: 25
+    };
+    this.jjDisputeService.getTCODisputes(params).subscribe((response) => {
+      this.tcoDisputes = [];
+      this.logger.log('JJDisputeDigitalCaseFileComponent::getTCODisputes response');
+      this.tcoDisputesCollection = response;
+      this.currentPage = response.pageNumber;
+      this.totalPages = response.totalPages;
+      if(!this.totalPages){
+        this.currentPage = 0;
+      }
+      this.tcoDisputes = response.items;
+      this.dataSource.data = this.tcoDisputes;
+    });
   }
 
   backWorkbench(element) {
@@ -60,22 +91,29 @@ export class JJDisputeDigitalCaseFileComponent implements OnInit, AfterViewInit 
   }
 
   onApplyFilter(dataFilters: TableFilter) {
-    this.dataSource.filter = JSON.stringify(dataFilters);
+    this.filters = dataFilters;
+    this.currentPage = 1;
+    this.getTCODisputes();
   }
-    
-  searchFilter = function (record: JJDispute, filter: string) {
-    let searchTerms = JSON.parse(filter);
-    return Object.entries(searchTerms).every(([field, value]: [string, string]) => {
-      if ("dateSubmittedFrom" === field) {
-        return !value || !DateUtil.isValid(value) || DateUtil.isDateOnOrAfter(record.submittedTs, value);
-      }
-      else if ("dateSubmittedTo" === field) {
-        return !value || !DateUtil.isValid(value) || DateUtil.isDateOnOrBefore(record.submittedTs, value);
-      }
-      else if (record[field]) {
-        return record[field].toLocaleLowerCase().indexOf(value.trim().toLocaleLowerCase()) != -1;
-      }
-      return true;
-    });
-  };
+
+  sortData(sort: Sort){
+    this.sortBy = sort.active;
+    this.sortDirection = sort.direction ? sort.direction as SortDirection : SortDirection.Desc;
+    this.currentPage = 1;
+    this.getTCODisputes();
+  }
+
+  onPageChange(event: number) {
+    this.currentPage = event;
+    this.getTCODisputes();
+  }
+
+  isConcludedStatus(status: JJDisputeStatus): boolean {
+    const concludedStatuses = new Set([
+      this.jjDisputeStatus.Accepted,
+      this.jjDisputeStatus.Cancelled,
+      this.jjDisputeStatus.Concluded
+    ]);
+    return concludedStatuses.has(status);
+  }
 }

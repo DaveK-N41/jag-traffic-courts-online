@@ -115,18 +115,23 @@
     </div>
   </div>
   <ng-content select="[recordCount]"></ng-content>
-  <ng-content select="[paginationInfo]"></ng-content>
   <div fxFlex fxFlex.gt-md="30" *ngIf="tableFilterConfigs.courthouseLocation">
     <div fxFlex="30">
       <label class="vcenter" for="courthouseLocation"><span class="BC-Gov-15px-blue-text"><b>Courthouse
             Location:</b></span></label>
     </div>
     <div fxFlex>
-      <mat-form-field appearance="outline">
-        <input id="courthouseLocation" name="courthouseLocation" matInput [(ngModel)]="dataFilters.courthouseLocation"
-          type="search" (keyup)="onApplyFilter('courthouseLocation', $event.target.value)" autocomplete="off"
-          class="input" />
-      </mat-form-field>
+      <ng-multiselect-dropdown
+        name="courthouseLocation"
+        [settings]="courtHouseSettings"
+        [data]="lookupsService.courthouseAgencies"
+        [(ngModel)]="dataFilters.courthouseLocation"
+        (onSelect)="onApplyFilter('courthouseLocation', $event)"
+        (onSelectAll)="onSelectOrDeselectAllCourthouseLocations($event)"
+        (onDeSelect)="onApplyFilter('courthouseLocation', $event)"
+        (onDeSelectAll)="onSelectOrDeselectAllCourthouseLocations($event)"
+      >
+      </ng-multiselect-dropdown>
     </div>
   </div>
 </div>
