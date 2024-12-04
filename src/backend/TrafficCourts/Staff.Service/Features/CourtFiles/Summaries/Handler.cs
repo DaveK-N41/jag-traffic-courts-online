@@ -7,66 +7,16 @@ using X.PagedList;
 
 namespace TrafficCourts.Staff.Service.Features.CourtFiles.Summaries;
 
-public class Request : IRequest<Response>
-{
-    public bool? appearances { get; set; }
-    public bool? notice_of_hearing_yn { get; set; }
-    public bool? multiple_officers_yn { get; set; }
-    public bool? electronic_ticket_yn { get; set; }
-
-    public string? time_zone { get; set; }
-    public string? submitted_from { get; set; }
-    public string? submitted_thru { get; set; }
-
-    public string? ticket_number { get; set; }
-    public string? surname { get; set; }
-
-    public string? jj_assigned_to { get; set; }
-    public string? dispute_status_codes { get; set; }
-    public string? appearance_courthouse_ids { get; set; }
-    public string? to_be_heard_at_courthouse_ids { get; set; }
-
-    public int? page_number { get; set; }
-    public int? page_size { get; set; }
-
-    public string? sort_by { get; set; }
-}
-
-public class Response
-{
-    public PagedDisputeCaseFileSummaryCollection Data { get; set; }
-}
-
-public class PagedDisputeCaseFileSummaryCollection
-{
-    public PagedDisputeCaseFileSummaryCollection()
-    {
-    }
-    public PagedDisputeCaseFileSummaryCollection(IEnumerable<DisputeCaseFileSummary> items, int pageNumber, int pageSize, int totalRows)
-    {
-        Items = items;
-        PageNumber = pageNumber;
-        PageSize = pageSize;
-        TotalRows = totalRows;
-        TotalPages = (int)Math.Ceiling((double)totalRows / pageSize);
-    }
-
-    public IEnumerable<DisputeCaseFileSummary> Items { get; set; }
-    public int PageNumber { get; set; }
-    public int PageSize { get; set; }
-    public int TotalPages { get; set; }
-    public int TotalRows { get; set; }
-
-}
-
 
 public class Handler : IRequestHandler<Request, Response>
 {
     private readonly IDisputeCaseFileSummaryRepository _repository;
+    private readonly Serilog.ILogger _logger;
 
-    public Handler(IDisputeCaseFileSummaryRepository repository)
+    public Handler(IDisputeCaseFileSummaryRepository repository, Serilog.ILogger logger)
     {
-        _repository = repository;
+        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
@@ -75,6 +25,13 @@ public class Handler : IRequestHandler<Request, Response>
 
         var pagedCollection = await _repository.GetListAsync(parameters, cancellationToken);
 
+        var response = CreateResponse(pagedCollection);
+
+        return response; 
+    }
+
+    private Response CreateResponse(OrdsDataService.OrdsDataServicePagedCollectionResponse<OrdsDisputeCaseFileSummary> pagedCollection)
+    {
         if (pagedCollection.Rows is not null)
         {
             var items = pagedCollection.Rows.Select(Map);
@@ -87,10 +44,30 @@ public class Handler : IRequestHandler<Request, Response>
             int totalPages = (int)Math.Ceiling((double)totalRows / pageSize);
 
             var pagedList = new PagedDisputeCaseFileSummaryCollection(items, pageNumber, pageSize, pagedCollection.TotalRows);
-            return new Response { Data = pagedList };
+            return new Response(pagedList);
         }
 
-        return new Response(); // no data - todo
+        // generate an error id that we log and return to the client
+        string errorId = Guid.NewGuid().ToString("n");
+
+        var error = pagedCollection.Errors?.FirstOrDefault();
+        var logger = _logger.ForContext("ErrorId", errorId);
+
+        if (error is not null)
+        {
+            logger
+                .ForContext("ErrorCode", error.ErrorCode)
+                .ForContext("ErrorMessage", error.ErrorMessage)
+                .ForContext("ErrorStack", error.ErrorStack)
+                .Error("Error fetching data from ORDS");
+        }
+        else
+        {
+            logger
+                .Warning("No data returned from ORDS, no error details are available");
+        }
+
+        return new Response(errorId);
     }
 
     private Dictionary<string, string> GetParameters(Request request)
@@ -144,11 +121,15 @@ public class Handler : IRequestHandler<Request, Response>
 
     private void AddWhere(Dictionary<string, string> parameters, Request request)
     {
-        AddDateSubmittedFilter(parameters, request);
+        AddUtcDateRangeFilter(parameters, "submitted_dt", request.time_zone, request.submitted_from, request.submitted_thru);
+        AddUtcDateRangeFilter(parameters, "jj_decision_dt", request.time_zone, request.jj_decision_dt_from, request.jj_decision_dt_thru);
 
         if (request.ticket_number is not null) parameters.Add("ticket_number_txt_eq", request.ticket_number);
         if (request.surname is not null) parameters.Add("prof_surname_nm_eq", request.surname);
         if (request.jj_assigned_to is not null) parameters.Add("jj_assigned_to_eq", request.jj_assigned_to);
+
+        if (request.jj_decision_dt_from is not null) parameters.Add("jj_decision_dt_ge", request.jj_decision_dt_from); // YYYY-MM-DD
+        if (request.jj_decision_dt_thru is not null) parameters.Add("jj_decision_dt_le", request.jj_decision_dt_thru); // YYYY-MM-DD
 
         if (request.dispute_status_codes is not null) parameters.Add("dispute_status_type_cd_in", request.dispute_status_codes);
         if (request.to_be_heard_at_courthouse_ids is not null) parameters.Add("to_be_heard_at_agen_id_in", request.to_be_heard_at_courthouse_ids);
@@ -160,31 +141,31 @@ public class Handler : IRequestHandler<Request, Response>
 
     }
 
-    private void AddDateSubmittedFilter(Dictionary<string, string> parameters, Request request)
+    private void AddUtcDateRangeFilter(Dictionary<string, string> parameters, string field, string? timeZone, string? from, string? thru)
     {
-        if (request.submitted_from is null && request.submitted_thru is null)
+        if (from is null && thru is null)
         {
             return;
         }
 
-        var timeZone = request.time_zone ?? "America/Vancouver";
+        timeZone = timeZone ?? "America/Vancouver";
         TimeZoneInfo tz = TimeZoneInfo.FindSystemTimeZoneById(timeZone);
 
         // convert the from/thru to UTC
-        if (request.submitted_from is not null)
+        if (from is not null)
         {
-            DateTime date = DateTime.ParseExact(request.submitted_from, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+            DateTime date = DateTime.ParseExact(from, "yyyy-MM-dd", CultureInfo.InvariantCulture);
             date = TimeZoneInfo.ConvertTimeToUtc(date, tz);
-            parameters.Add("submitted_dt_ge", date.ToString("yyyy-MM-ddTHH:mm:ssZ"));
+            parameters.Add($"{field}_ge", date.ToString("yyyy-MM-ddTHH:mm:ssZ"));
         }
 
-        if (request.submitted_thru is not null)
+        if (thru is not null)
         {
             // bump the date by one and search for less than the next day
-            DateTime date = DateTime.ParseExact(request.submitted_thru, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+            DateTime date = DateTime.ParseExact(thru, "yyyy-MM-dd", CultureInfo.InvariantCulture);
             date = date.AddDays(1);
             date = TimeZoneInfo.ConvertTimeToUtc(date, tz);
-            parameters.Add("submitted_dt_lt", date.ToString("yyyy-MM-ddTHH:mm:ssZ"));
+            parameters.Add($"{field}_lt", date.ToString("yyyy-MM-ddTHH:mm:ssZ"));
         }
     }
 
@@ -218,9 +199,9 @@ public class Handler : IRequestHandler<Request, Response>
                 "ticketNumber" => "ticket_number_txt",
                 "violationDate" => "violation_dt",
                 "toBeHeardAtCourthouseName" => "to_be_heard_at_agen_nm",
-                "disputantSurname" => "prof_surname_nm",
+                "surname" => "prof_surname_nm",
                 "disputantGivenName1" => "prof_given_1_nm",
-                "disputeStatusDescription" => "dispute_status_type_dsc",
+                "status" => "dispute_status_type_dsc",
                 "policeDetachment" => "detachment_agency_nm",
                 "accidentYn" => "accident_yn",
                 "noticeOfHearingYn" => "notice_of_hearing_yn",
@@ -316,9 +297,11 @@ public class Handler : IRequestHandler<Request, Response>
             DisputantGivenName1 = dispute.prof_given_1_nm,
             DisputantGivenName2 = dispute.prof_given_2_nm,
             DisputantGivenName3 = dispute.prof_given_3_nm,
-            Status = ToJJDisputeStatus(dispute.dispute_status_type_cd),
-            DisputeStatusCd = dispute.dispute_status_type_cd,
-            DisputeStatusDescription = dispute.dispute_status_type_dsc,
+            DisputeStatus = new DisputeCaseFileStatus
+            {
+                Code = dispute.dispute_status_type_cd,
+                Description = dispute.dispute_status_type_dsc
+            },
             PoliceDetachmentId = dispute.detachment_agen_id,
             PoliceDetachment = dispute.detachment_agency_nm,
             AccidentYn = ToYesNo(dispute.accident_yn),
@@ -367,15 +350,13 @@ public class Handler : IRequestHandler<Request, Response>
         };
     }
 
-    private static JJDisputeHearingType? ToJJDisputeHearingType(string? value)
+    private static string ToJJDisputeHearingType(string? value)
     {
         return value switch
         {
-            "C" => JJDisputeHearingType.COURT_APPEARANCE,
-            "W" => JJDisputeHearingType.WRITTEN_REASONS,
-            "U" => JJDisputeHearingType.UNKNOWN,
-            null => null,
-            _ => JJDisputeHearingType.UNKNOWN
+            "C" => "COURT_APPEARANCE",
+            "W" => "WRITTEN_REASONS",
+            _ => ""
         };
     }
 }
