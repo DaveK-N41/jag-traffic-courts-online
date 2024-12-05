@@ -5,6 +5,7 @@ export * from './credentialRepresentation.model';
 export * from './dcfTemplateType.model';
 export * from './dispute.model';
 export * from './disputeAppearanceLessThan14DaysYn.model';
+export * from './disputeCaseFileStatus.model';
 export * from './disputeCaseFileSummary.model';
 export * from './disputeContactTypeCd.model';
 export * from './disputeCount.model';

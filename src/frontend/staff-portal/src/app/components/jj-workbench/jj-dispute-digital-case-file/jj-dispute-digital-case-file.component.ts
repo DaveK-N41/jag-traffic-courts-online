@@ -1,13 +1,13 @@
-import { Component, OnInit, ViewChild, AfterViewInit, Output, EventEmitter, Input } from '@angular/core';
+import { Component, OnInit, ViewChild, Output, EventEmitter, Input } from '@angular/core';
 import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
 import { MatSort, Sort } from '@angular/material/sort';
 import { JJDispute, JJDisputeService } from 'app/services/jj-dispute.service';
-import { DisputeCaseFileSummary, JJDisputeHearingType, JJDisputeStatus, PagedDisputeCaseFileSummaryCollection, SortDirection } from 'app/api';
-import { Observable, Subscription } from 'rxjs';
-import { DateUtil } from '@shared/utils/date-util';
+import { DisputeCaseFileSummary, JJDisputeHearingType, PagedDisputeCaseFileSummaryCollection, SortDirection } from 'app/api';
+import { Observable } from 'rxjs';
 import { TableFilter, TableFilterKeys } from '@shared/models/table-filter-options.model';
 import { TableFilterService } from 'app/services/table-filter.service';
 import { LoggerService } from '@core/services/logger.service';
+import { DisputeStatus } from '@shared/consts/DisputeStatus.model';
 
 @Component({
   selector: 'app-jj-dispute-digital-case-file',
@@ -33,16 +33,16 @@ export class JJDisputeDigitalCaseFileComponent implements OnInit {
     "ticketNumber",
     "submittedTs",
     "violationDate",
-    "disputantSurname",
+    "surname",
     "toBeHeardAtCourthouseName",
-    "disputeStatusDescription",
+    "status",
   ];
   currentPage: number = 1;
   totalPages: number = 1;
   sortBy: string = "submittedTs";
   sortDirection: SortDirection = SortDirection.Desc;
   filters: TableFilter = new TableFilter();
-  jjDisputeStatus = JJDisputeStatus;
+  disputeStatus = DisputeStatus;
 
   constructor(
     private tableFilterService: TableFilterService,
@@ -108,12 +108,11 @@ export class JJDisputeDigitalCaseFileComponent implements OnInit {
     this.getTCODisputes();
   }
 
-  isConcludedStatus(status: JJDisputeStatus): boolean {
+  isConcludedStatus(status: DisputeStatus): boolean {
     const concludedStatuses = new Set([
-      this.jjDisputeStatus.Accepted,
-      this.jjDisputeStatus.Cancelled,
-      this.jjDisputeStatus.Concluded
-    ]);
+      DisputeStatus.Accepted,
+      DisputeStatus.Cancelled,
+      DisputeStatus.Concluded]);
     return concludedStatuses.has(status);
   }
 }

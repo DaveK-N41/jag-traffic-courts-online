@@ -2572,6 +2572,22 @@
               }
             },
             {
+              "name": "jj_decision_dt_from",
+              "in": "query",
+              "description": "The jj decision date where greater or equal to this date. Format must be YYYY-MM-DD.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "jj_decision_dt_thru",
+              "in": "query",
+              "description": "The jj decision date where less or equal to this date. Format must be YYYY-MM-DD.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
               "name": "dispute_status_codes",
               "in": "query",
               "description": "The comma separate list of status codes",
@@ -5254,6 +5270,39 @@
           }
         }
       },
+      "/api/lookup/dispute-case-file-statuses/v2": {
+        "get": {
+          "tags": [
+            "Lookup"
+          ],
+          "summary": "Returns a list of dispute case file status types.",
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/DisputeCaseFileStatus"
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Request lacks valid authentication credentials.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ProblemDetails"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "/api/permissions": {
         "get": {
           "tags": [
@@ -5776,6 +5825,20 @@
           ],
           "type": "string"
         },
+        "DisputeCaseFileStatus": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "nullable": true
+            },
+            "description": {
+              "type": "string",
+              "nullable": true
+            }
+          },
+          "additionalProperties": false
+        },
         "DisputeCaseFileSummary": {
           "type": "object",
           "properties": {
@@ -5798,7 +5861,8 @@
               "nullable": true
             },
             "hearingType": {
-              "$ref": "#/components/schemas/JJDisputeHearingType"
+              "type": "string",
+              "nullable": true
             },
             "ticketNumber": {
               "type": "string",
@@ -5838,20 +5902,8 @@
               "type": "string",
               "nullable": true
             },
-            "status": {
-              "$ref": "#/components/schemas/JJDisputeStatus"
-            },
-            "disputeStatusCd": {
-              "type": "string",
-              "nullable": true
-            },
-            "disputeStatusDescription": {
-              "type": "string",
-              "nullable": true
-            },
-            "statusDescription": {
-              "type": "string",
-              "nullable": true
+            "disputeStatus": {
+              "$ref": "#/components/schemas/DisputeCaseFileStatus"
             },
             "policeDetachment": {
               "type": "string",

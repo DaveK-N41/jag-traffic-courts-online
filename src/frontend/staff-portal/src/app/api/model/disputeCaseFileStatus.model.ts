@@ -11,11 +11,8 @@
  */
 
 
-export type ViolationTicketCountIsAct = 'UNKNOWN' | 'Y' | 'N';
-
-export const ViolationTicketCountIsAct = {
-    Unknown: 'UNKNOWN' as ViolationTicketCountIsAct,
-    Y: 'Y' as ViolationTicketCountIsAct,
-    N: 'N' as ViolationTicketCountIsAct
-};
+export interface DisputeCaseFileStatus { 
+    code?: string | null;
+    description?: string | null;
+}
 
