@@ -42,7 +42,7 @@ public class DisputeUpdateRequestAcceptedConsumerTest
         _oracleDataApiService.Setup(_ => _.UpdateDisputeUpdateRequestStatusAsync(1, DisputeUpdateRequestStatus.ACCEPTED, It.IsAny<CancellationToken>())).Returns(Task.FromResult(_updateRequest));
         _oracleDataApiService.Setup(_ => _.UpdateDisputeUpdateRequestStatusAsync(1, DisputeUpdateRequestStatus.PENDING, It.IsAny<CancellationToken>())).Returns(Task.FromResult(_updateRequest));
         _oracleDataApiService.Setup(_ => _.GetDisputeByIdAsync(1, false, It.IsAny<CancellationToken>())).Returns(Task.FromResult(_dispute));
-        _oracleDataApiService.Setup(_ => _.UpdateDisputeAsync(1, _dispute, It.IsAny<CancellationToken>())).Returns(Task.FromResult(_dispute));
+        _oracleDataApiService.Setup(_ => _.UpdateDisputeAsync(1, _dispute, false, It.IsAny<CancellationToken>())).Returns(Task.FromResult(_dispute));
         _context = new();
         _context.Setup(_ => _.Message).Returns(_message);
         _context.Setup(_ => _.CancellationToken).Returns(CancellationToken.None);

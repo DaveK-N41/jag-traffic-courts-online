@@ -943,13 +943,13 @@ internal class TimedOracleDataApiClient : IOracleDataApiClient
         }
     }
 
-    public async global::System.Threading.Tasks.Task<TrafficCourts.OracleDataApi.Client.V1.Dispute> UpdateDisputeAsync(long id, TrafficCourts.OracleDataApi.Client.V1.Dispute body)
+    public async global::System.Threading.Tasks.Task<TrafficCourts.OracleDataApi.Client.V1.Dispute> UpdateDisputeAsync(long id, bool checkUserAssigned, TrafficCourts.OracleDataApi.Client.V1.Dispute body)
     {
         using var operation = _metrics.BeginOperation();
 
         try
         {
-            var result = await _inner.UpdateDisputeAsync(id, body).ConfigureAwait(false);
+            var result = await _inner.UpdateDisputeAsync(id, checkUserAssigned, body).ConfigureAwait(false);
             return result;
         }
         catch (global::System.Exception exception)
@@ -959,13 +959,13 @@ internal class TimedOracleDataApiClient : IOracleDataApiClient
         }
     }
 
-    public async global::System.Threading.Tasks.Task<TrafficCourts.OracleDataApi.Client.V1.Dispute> UpdateDisputeAsync(long id, TrafficCourts.OracleDataApi.Client.V1.Dispute body, System.Threading.CancellationToken cancellationToken)
+    public async global::System.Threading.Tasks.Task<TrafficCourts.OracleDataApi.Client.V1.Dispute> UpdateDisputeAsync(long id, bool checkUserAssigned, TrafficCourts.OracleDataApi.Client.V1.Dispute body, System.Threading.CancellationToken cancellationToken)
     {
         using var operation = _metrics.BeginOperation();
 
         try
         {
-            var result = await _inner.UpdateDisputeAsync(id, body, cancellationToken).ConfigureAwait(false);
+            var result = await _inner.UpdateDisputeAsync(id, checkUserAssigned, body, cancellationToken).ConfigureAwait(false);
             return result;
         }
         catch (global::System.Exception exception)

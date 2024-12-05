@@ -62,7 +62,7 @@ public class DisputeUpdateRequestConsumer : IConsumer<DisputeUpdateRequest>
                 {
                     dispute.EmailAddress = null;
                     dispute.EmailAddressVerified = true;
-                    await _oracleDataApiService.UpdateDisputeAsync(dispute.DisputeId, dispute, context.CancellationToken);
+                    await _oracleDataApiService.UpdateDisputeAsync(dispute.DisputeId, dispute, false, context.CancellationToken);
                 }
                 else
                 {

@@ -34,7 +34,7 @@ public interface IOracleDataApiService
     Task<long> SaveDisputeUpdateRequestAsync(string guid, DisputeUpdateRequest body, CancellationToken cancellationToken);
     Task<Dispute> SubmitDisputeAsync(long id, CancellationToken cancellationToken);
     Task UnassignDisputesAsync(CancellationToken cancellationToken);
-    Task<Dispute> UpdateDisputeAsync(long id, Dispute body, CancellationToken cancellationToken);
+    Task<Dispute> UpdateDisputeAsync(long id, Dispute body, bool checkUserAssigned, CancellationToken cancellationToken);
     Task<DisputeUpdateRequest> UpdateDisputeUpdateRequestStatusAsync(long id, DisputeUpdateRequestStatus disputeUpdateRequestStatus, CancellationToken cancellationToken);
     Task<JJDispute> UpdateJJDisputeAsync(string ticketNumber, bool checkVTCAssigned, JJDispute body, CancellationToken cancellationToken);
     Task<JJDispute> UpdateJJDisputeCascadeAsync(string ticketNumber, bool checkVTCAssigned, JJDispute body, CancellationToken cancellationToken);
