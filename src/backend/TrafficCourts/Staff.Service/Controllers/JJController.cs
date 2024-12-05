@@ -99,6 +99,7 @@ public partial class JJController : StaffControllerBase
     /// <param name="dispute_status_codes">The comma separate list of status codes</param>
     /// <param name="appearance_courthouse_ids">The comma separate list of agency ids</param>
     /// <param name="to_be_heard_at_courthouse_ids">The comma separate list of agency ids</param>
+    /// <param name="hearing_type_cd">The hearing type code to search.</param>
     /// <param name="page_number">The page number to fetch. Starts at 1.</param>
     /// <param name="page_size">The page size to use. If not specified, defaults to 25</param>
     /// <param name="sort_by">The list of columns to sort the result by. To sort descending, add a '-' before the column name.</param>
@@ -129,6 +130,7 @@ public partial class JJController : StaffControllerBase
         string? dispute_status_codes,
         string? appearance_courthouse_ids,
         string? to_be_heard_at_courthouse_ids,
+        string? hearing_type_cd,
         string? sort_by,
         int? page_number,
         int? page_size,
@@ -151,6 +153,7 @@ public partial class JJController : StaffControllerBase
             dispute_status_codes = dispute_status_codes,
             appearance_courthouse_ids = appearance_courthouse_ids,
             to_be_heard_at_courthouse_ids = to_be_heard_at_courthouse_ids,
+            hearing_type_cd = hearing_type_cd,
             sort_by = sort_by,
             page_number = page_number,
             page_size = page_size

@@ -128,11 +128,9 @@ public class Handler : IRequestHandler<Request, Response>
         if (request.surname is not null) parameters.Add("prof_surname_nm_eq", request.surname);
         if (request.jj_assigned_to is not null) parameters.Add("jj_assigned_to_eq", request.jj_assigned_to);
 
-        if (request.jj_decision_dt_from is not null) parameters.Add("jj_decision_dt_ge", request.jj_decision_dt_from); // YYYY-MM-DD
-        if (request.jj_decision_dt_thru is not null) parameters.Add("jj_decision_dt_le", request.jj_decision_dt_thru); // YYYY-MM-DD
-
         if (request.dispute_status_codes is not null) parameters.Add("dispute_status_type_cd_in", request.dispute_status_codes);
         if (request.to_be_heard_at_courthouse_ids is not null) parameters.Add("to_be_heard_at_agen_id_in", request.to_be_heard_at_courthouse_ids);
+        if (request.hearing_type_cd is not null) parameters.Add("hearing_type_cd_eq", request.hearing_type_cd);
 
         if (request.appearance_courthouse_ids is not null && request.appearances is true)
         {

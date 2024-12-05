@@ -2612,6 +2612,14 @@
               }
             },
             {
+              "name": "hearing_type_cd",
+              "in": "query",
+              "description": "The hearing type code to search.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
               "name": "sort_by",
               "in": "query",
               "description": "The list of columns to sort the result by. To sort descending, add a '-' before the column name.",

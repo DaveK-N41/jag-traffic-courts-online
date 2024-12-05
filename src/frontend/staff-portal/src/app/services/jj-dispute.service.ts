@@ -67,13 +67,13 @@ export class JJDisputeService {
     electronicTicketYn?: boolean, timeZone?: string, submittedFrom?: string, submittedThru?: string, 
     ticketNumber?: string, surname?: string, jjAssignedTo?: string, jjDecisionDtFrom?: string, 
     jjDecisionDtThru?: string, disputeStatusCodes?: string, appearanceCourthouseIds?: string, 
-    toBeHeardAtCourthouseIds?: string, sortBy?: string, pageNumber?: number, pageSize?: number }): 
+    toBeHeardAtCourthouseIds?: string, hearingTypeCd?: string, sortBy?: string, pageNumber?: number, pageSize?: number }): 
     Observable<PagedDisputeCaseFileSummaryCollection> {
     return this.jjApiService.apiJjDisputesSearchGet(params.appearances, params.noticeOfHearingYn, 
       params.multipleOfficersYn, params.electronicTicketYn, params.timeZone, params.submittedFrom, 
       params.submittedThru, params.ticketNumber, params.surname, params.jjAssignedTo, params.jjDecisionDtFrom,
       params.jjDecisionDtThru, params.disputeStatusCodes, params.appearanceCourthouseIds, params.toBeHeardAtCourthouseIds, 
-      params.sortBy, params.pageNumber, params.pageSize)
+      params.hearingTypeCd, params.sortBy, params.pageNumber, params.pageSize)
       .pipe(
         map((response: PagedDisputeCaseFileSummaryCollection) => {
           this.logger.info('jj-DisputeService::getTcoDisputes', response);

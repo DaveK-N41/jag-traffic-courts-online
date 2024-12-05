@@ -80,7 +80,8 @@ export class JJDisputeWRInboxComponent implements OnInit, AfterViewInit {
     this.logger.log('JJDisputeWRInboxComponent::getJJDisputesByIDIR');
 
     // only show status NEW, IN_PROGRESS, REVIEW, REQUIRE_MORE_INFO
-    this.data = this.data.filter(x => this.statusDisplay.indexOf(x.status) > -1 && x.hearingType === this.HearingType.WrittenReasons);
+    this.data = this.data.filter(x => this.statusDisplay.indexOf(x.status) > -1 && 
+    x.hearingType === this.HearingType.WrittenReasons);
     this.dataSource.data = this.data;
 
     // initially sort by submitted date within status
