@@ -29,7 +29,11 @@ export class JjDisputeUpdatesComponent {
     "AddressCity":"City", 
     "AddressProvince":"Province", 
     "AddressCountry":"Country",
-    "PostalCode":"Postal Code"
+    "PostalCode":"Postal Code",
+    "DriversLicenceNumber": "Drivers Licence Number",
+    "DriversLicenceProvince": "Drivers Licence Province",
+    "DriversLicenceIssuedCountry": "Drivers Licence Issued Country",
+    "DriversLicenceIssuedProvince": "Drivers Licence Issued Province"
   };
   DISPUTANT_PHONE_FIELDS = {
     "HomePhoneNumber":"Phone Number"
@@ -38,7 +42,12 @@ export class JjDisputeUpdatesComponent {
     "DisputantGivenName1":"Disputant Given Name 1", 
     "DisputantGivenName2":"Disputant Given Name 2", 
     "DisputantGivenName3":"Disputant Given Name 3", 
-    "DisputantSurname":"Surname"
+    "DisputantSurname":"Surname",
+    "ContactLawFirmName": "Contact Law Firm Name",
+    "ContactGiven1Nm": "Contact Given Name 1",
+    "ContactGiven2Nm": "Contact Given Name 2",
+    "ContactGiven3Nm": "Contact Given Name 3",
+    "ContactSurnameNm": "Contact Surname"
   };
   COUNT_FIELDS = {
     "PleaCode": "Plea Code",
@@ -47,10 +56,6 @@ export class JjDisputeUpdatesComponent {
     "RequestReduction": "Request Reduction"
   };
   COURT_OPTIONS_FIELDS = {
-    "DriversLicenceNumber": "Drivers Licence Number",
-    "DriversLicenceProvince": "Drivers Licence Province",
-    "DriversLicenceIssuedCountry": "Drivers Licence Issued Country",
-    "DriversLicenceIssuedProvince": "Drivers Licence Issued Province",
     "LawFirmName": "Law Firm Name",
     "LawyerSurname": "Lawyer Surname",
     "LawyerGivenName1": "Lawyer Given Name 1",
@@ -66,12 +71,7 @@ export class JjDisputeUpdatesComponent {
     "TimeToPayReason": "Time To Pay Reason",
     "RequestCourtAppearance": "Request Court Appearance",
     "SignatoryName": "Signatory Name",
-    "SignatoryType": "Signatory Type",
-    "ContactLawFirmName": "Contact Law Firm Name",
-    "ContactGiven1Nm": "Contact Given Name 1",
-    "ContactGiven2Nm": "Contact Given Name 2",
-    "ContactGiven3Nm": "Contact Given Name 3",
-    "ContactSurnameNm": "Contact Surname",
+    "SignatoryType": "Signatory Type"
   };
   DISPUTANT_EMAIL_FIELDS = {
     "EmailAddress": "Email Address"
