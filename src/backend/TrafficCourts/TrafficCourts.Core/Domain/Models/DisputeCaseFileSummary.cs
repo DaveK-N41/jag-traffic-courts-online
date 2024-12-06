@@ -38,6 +38,12 @@ public class DisputeCaseFileSummary
     public string? AppearanceCourthouseName { get; set; }
     public string? AppearanceRoomCode { get; set; }
     public DateTimeOffset? AppearanceTs { get; set; }
+
+    /// <summary>
+    /// The estimated appearnce duration in minutes.
+    /// If zero, there is no estimated duration.
+    /// </summary>
+    public int AppearanceDuration { get; set; }
 }
 
 public class DisputeCaseFileStatus

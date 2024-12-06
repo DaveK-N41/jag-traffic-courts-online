@@ -3,6 +3,7 @@
 namespace TrafficCourts.OrdsDataService.Tco;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
 
 public class OrdsDisputeCaseFileSummary
 {
@@ -35,5 +36,8 @@ public class OrdsDisputeCaseFileSummary
     public string appr_ctrm_agen_nm { get; set; }
     public string appr_ctrm_room_cd { get; set; }
     public DateTime? appr_tm { get; set; }
+    public int? appr_estimated_duration_hh { get; set; }
+    public int? appr_estimated_duration_mi { get; set; }
 }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles

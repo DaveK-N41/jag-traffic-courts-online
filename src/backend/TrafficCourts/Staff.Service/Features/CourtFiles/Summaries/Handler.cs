@@ -312,7 +312,8 @@ public class Handler : IRequestHandler<Request, Response>
             AppearanceCourthouseId = dispute.appr_ctrm_agen_id,
             AppearanceCourthouseName = dispute.appr_ctrm_agen_nm,
             AppearanceRoomCode = dispute.appr_ctrm_room_cd,
-            AppearanceTs = dispute.appr_tm
+            AppearanceTs = dispute.appr_tm,
+            AppearanceDuration = (dispute.appr_estimated_duration_hh ?? 0) * 60 + (dispute.appr_estimated_duration_mi ?? 0)
         };
 
         return summary;
