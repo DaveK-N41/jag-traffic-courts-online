@@ -68,15 +68,15 @@ export class DisputeDecisionInboxComponent implements OnInit {
   }
 
   public ngOnInit() {
-    this.authService.userProfile$.subscribe(userProfile => {
-      if (userProfile) {
-        this.IDIR = userProfile.idir;
-      }
-    });    
     let dataFilter: TableFilter = this.tableFilterService.tableFilters[this.tabIndex];
     dataFilter.status = dataFilter.status ?? "";
     this.filters = dataFilter;
-    this.getTCODisputes();
+    this.authService.userProfile$.subscribe(userProfile => {
+      if (userProfile) {
+        this.IDIR = userProfile.idir;
+        this.getTCODisputes();
+      }
+    });
   }
 
   backWorkbench(value: JJDispute) {

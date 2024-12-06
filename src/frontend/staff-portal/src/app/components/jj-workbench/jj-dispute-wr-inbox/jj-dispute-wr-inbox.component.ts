@@ -1,100 +1,107 @@
-import { Component, OnInit, ViewChild, AfterViewInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, ViewChild, Output, EventEmitter } from '@angular/core';
 import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
-import { MatSort } from '@angular/material/sort';
+import { MatSort, Sort } from '@angular/material/sort';
 import { JJDisputeService, JJDispute } from 'app/services/jj-dispute.service';
 import { LoggerService } from '@core/services/logger.service';
-import { filter, Observable } from 'rxjs';
-import { JJDisputeStatus, JJDisputeHearingType, JJDisputeAccidentYn } from 'app/api';
+import { JJDisputeStatus, SortDirection, DisputeCaseFileSummary, PagedDisputeCaseFileSummaryCollection, YesNo } from 'app/api';
 import { AuthService } from 'app/services/auth.service';
-import { AppState } from 'app/store';
-import { Store } from '@ngrx/store';
+import { DisputeStatus } from '@shared/consts/DisputeStatus.model';
+import { HearingType } from '@shared/consts/HearingType.model';
 
 @Component({
   selector: 'app-jj-dispute-wr-inbox',
   templateUrl: './jj-dispute-wr-inbox.component.html',
   styleUrls: ['./jj-dispute-wr-inbox.component.scss'],
 })
-export class JJDisputeWRInboxComponent implements OnInit, AfterViewInit {
+export class JJDisputeWRInboxComponent implements OnInit {
   @Output() jjDisputeInfo: EventEmitter<JJDispute> = new EventEmitter();
   @ViewChild(MatSort) sort = new MatSort();
 
   jjIDIR: string;
-  HearingType = JJDisputeHearingType;
-  Accident = JJDisputeAccidentYn;
-  statusComplete = this.jjDisputeService.jjDisputeStatusComplete;
-  statusDisplay: JJDisputeStatus[] = this.jjDisputeService.jjDisputeStatusDisplay;
-  data$: Observable<JJDispute[]>;
-  data = [] as JJDispute[];
-  dataSource: MatTableDataSource<JJDispute> = new MatTableDataSource();
+  tcoDisputes: DisputeCaseFileSummary[] = [];
+  tcoDisputesCollection: PagedDisputeCaseFileSummaryCollection = {};
+  dataSource = new MatTableDataSource(this.tcoDisputes);
   displayedColumns: string[] = [
     "ticketNumber",
     "submittedTs",
     "violationDate",
-    "occamDisputantSurnameNm",
-    "courthouseLocation",
+    "surname",
+    "toBeHeardAtCourthouseName",
     "policeDetachment",
     "accidentYn",
     "status",
   ];
+  currentPage: number = 1;
+  totalPages: number = 1;
+  sortBy: string = "submittedTs";
+  sortDirection: SortDirection = SortDirection.Desc;
+  disputeStatus = DisputeStatus;
+  hearingType = HearingType;
+  accident = YesNo;
 
   constructor(
     private jjDisputeService: JJDisputeService,
     private logger: LoggerService,
-    private authService: AuthService,
-    private store: Store<AppState>
+    private authService: AuthService
   ) {
-    this.data$ = this.store.select(state => state.jjDispute.data).pipe(filter(i => !!i));
   }
 
   ngOnInit(): void {
     this.authService.userProfile$.subscribe(userProfile => {
       if (userProfile) {
         this.jjIDIR = userProfile.idir;
-        this.data$.subscribe(jjDisputes => {
-          this.data = jjDisputes
-            .map(jjDispute => { return { ...jjDispute } })
-            .filter(jjDispute => jjDispute.jjAssignedTo === this.jjIDIR);
-          this.getAll();
-        })
+        this.getTCODisputes();
       }
     })
   }
 
-  ngAfterViewInit() {
-    this.dataSource.sort = this.sort;
-
-    // custom sorting on columns
-    this.dataSource.sortingDataAccessor = (data: any, sortHeaderId: string): string => {
-      if (typeof data[sortHeaderId] === 'string') {
-        return data[sortHeaderId].toLocaleLowerCase();
-      }    
-      return data[sortHeaderId];
+  getTCODisputes() {
+    this.logger.log('JJDisputeWRInboxComponent::getTCODisputes');
+    const params = {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      jjAssignedTo: this.jjIDIR,
+      disputeStatusCodes: [DisputeStatus.New, DisputeStatus.HearingScheduled, DisputeStatus.InProgress, 
+        DisputeStatus.Review, DisputeStatus.RequireMoreInfo].join(","),
+      hearingTypeCd: HearingType.WrittenReasons,
+      sortBy: this.sortDirection === SortDirection.Asc ? this.sortBy : "-" + this.sortBy,
+      pageNumber: this.currentPage,
+      pageSize: 25
     };
+    this.jjDisputeService.getTCODisputes(params).subscribe((response) => {
+      this.tcoDisputes = [];
+      this.logger.log('JJDisputeWRInboxComponent::getTCODisputes response');
+      this.tcoDisputesCollection = response;
+      this.currentPage = response.pageNumber;
+      this.totalPages = response.totalPages;
+      if(!this.totalPages){
+        this.currentPage = 0;
+      }
+      this.tcoDisputes = response.items;
+      this.dataSource.data = this.tcoDisputes;
+    });
   }
 
   backWorkbench(element) {
     this.jjDisputeInfo.emit(element);
   }
 
-  getAll(): void {
-    this.logger.log('JJDisputeWRInboxComponent::getJJDisputesByIDIR');
+  sortData(sort: Sort){
+    this.sortBy = sort.active;
+    this.sortDirection = sort.direction ? sort.direction as SortDirection : SortDirection.Desc;
+    this.currentPage = 1;
+    this.getTCODisputes();
+  }
 
-    // only show status NEW, IN_PROGRESS, REVIEW, REQUIRE_MORE_INFO
-    this.data = this.data.filter(x => this.statusDisplay.indexOf(x.status) > -1 && 
-    x.hearingType === this.HearingType.WrittenReasons);
-    this.dataSource.data = this.data;
+  onPageChange(event: number) {
+    this.currentPage = event;
+    this.getTCODisputes();
+  }
 
-    // initially sort by submitted date within status
-    this.dataSource.data = this.dataSource.data.sort((a, b) => {
-      // if they have the same status
-      if (a.status === b.status) {
-        if (a.submittedTs > b.submittedTs) { return 1; } else { return -1; }
-      }
-
-      // compare statuses
-      else {
-        if (this.jjDisputeService.jjDisputeStatusesSorted.indexOf(a.status) > this.jjDisputeService.jjDisputeStatusesSorted.indexOf(b.status)) { return 1; } else { return -1; }
-      }
-    });
+  isCompletedStatus(status: DisputeStatus): boolean {
+    const completedStatuses = new Set([
+      DisputeStatus.Accepted,
+      DisputeStatus.Cancelled,
+      DisputeStatus.Concluded]);
+    return completedStatuses.has(status);
   }
 }

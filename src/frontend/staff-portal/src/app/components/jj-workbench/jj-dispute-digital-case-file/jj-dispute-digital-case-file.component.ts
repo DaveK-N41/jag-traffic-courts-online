@@ -15,14 +15,10 @@ import { DisputeStatus } from '@shared/consts/DisputeStatus.model';
   styleUrls: ['./jj-dispute-digital-case-file.component.scss']
 })
 export class JJDisputeDigitalCaseFileComponent implements OnInit {
-  @Input() data$: Observable<JJDispute[]>;
   @Input() tabIndex: number;
   @Output() jjDisputeInfo: EventEmitter<JJDispute> = new EventEmitter();
   @ViewChild(MatSort) sort = new MatSort();
 
-  HearingType = JJDisputeHearingType;
-  jjAssignedToFilter: string;
-  filterText: string;
   tcoDisputes: DisputeCaseFileSummary[] = [];
   tcoDisputesCollection: PagedDisputeCaseFileSummaryCollection = {};
   dataSource = new MatTableDataSource(this.tcoDisputes);

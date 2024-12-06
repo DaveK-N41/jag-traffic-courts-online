@@ -41,3 +41,27 @@ background-color: #65799e;
 ::ng-deep .mat-sort-header-arrow {
   color: #fff;
 }
+
+.status {
+  button {
+    color: white;
+    width: 9.375rem;
+    border-radius: 0.625rem;
+  }
+
+  .bg-color-new {
+    background-color:#8fd08f;
+  }
+
+  .bg-color-in-progress {
+    background-color:#fcba19;
+  }
+
+  .bg-color-review {
+    background-color:#f63f3f;
+  }
+
+  .bg-color-complete {
+    background-color:#c5c5c5;
+  }
+}
