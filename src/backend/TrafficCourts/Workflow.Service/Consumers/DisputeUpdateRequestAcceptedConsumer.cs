@@ -88,14 +88,14 @@ public class DisputeUpdateRequestAcceptedConsumer : IConsumer<DisputeUpdateReque
                             if (patch.DriversLicenceProvince is not null) dispute.DriversLicenceProvince = patch.DriversLicenceProvince;
                             if (patch.DriversLicenceIssuedCountryId is not null) dispute.DriversLicenceIssuedCountryId = patch.DriversLicenceIssuedCountryId;
                             if (patch.DriversLicenceIssuedProvinceSeqNo is not null) dispute.DriversLicenceIssuedProvinceSeqNo = patch.DriversLicenceIssuedProvinceSeqNo;
-                            dispute = await _oracleDataApiService.UpdateDisputeAsync(dispute.DisputeId, dispute, context.CancellationToken);
+                            dispute = await _oracleDataApiService.UpdateDisputeAsync(dispute.DisputeId, dispute, false, context.CancellationToken);
                         }
                         break;
                     case DisputeUpdateRequestUpdateType.DISPUTANT_PHONE:
                         if (dispute.HomePhoneNumber!= patch.HomePhoneNumber)
                         {
                             dispute.HomePhoneNumber = patch.HomePhoneNumber;
-                            dispute = await _oracleDataApiService.UpdateDisputeAsync(dispute.DisputeId, dispute, context.CancellationToken);
+                            dispute = await _oracleDataApiService.UpdateDisputeAsync(dispute.DisputeId, dispute, false, context.CancellationToken);
                         }
                         break;
                     case DisputeUpdateRequestUpdateType.DISPUTANT_NAME:
@@ -115,7 +115,7 @@ public class DisputeUpdateRequestAcceptedConsumer : IConsumer<DisputeUpdateReque
                             dispute.ContactSurnameNm = patch.ContactSurnameNm;
                             dispute.ContactLawFirmNm = patch.ContactLawFirmNm;
                             dispute.ContactTypeCd = (DisputeContactTypeCd)(patch.ContactType is null ? DisputeContactTypeCd.UNKNOWN : patch.ContactType);
-                            dispute = await _oracleDataApiService.UpdateDisputeAsync(dispute.DisputeId, dispute, context.CancellationToken);
+                            dispute = await _oracleDataApiService.UpdateDisputeAsync(dispute.DisputeId, dispute, false, context.CancellationToken);
                         }
                         break;
                     case DisputeUpdateRequestUpdateType.DISPUTANT_DOCUMENT:
@@ -153,7 +153,7 @@ public class DisputeUpdateRequestAcceptedConsumer : IConsumer<DisputeUpdateReque
                                 }
                             }
                         }
-                        if (updateAnyCount == true) dispute = await _oracleDataApiService.UpdateDisputeAsync(dispute.DisputeId, dispute, context.CancellationToken);
+                        if (updateAnyCount == true) dispute = await _oracleDataApiService.UpdateDisputeAsync(dispute.DisputeId, dispute, false, context.CancellationToken);
                         break;
                     case DisputeUpdateRequestUpdateType.COURT_OPTIONS:
                         if ((dispute.RepresentedByLawyer == DisputeRepresentedByLawyer.Y) != patch.RepresentedByLawyer || dispute.LawFirmName != patch.LawFirmName
@@ -180,7 +180,7 @@ public class DisputeUpdateRequestAcceptedConsumer : IConsumer<DisputeUpdateReque
                             dispute.WitnessNo = patch?.WitnessNo;
                             dispute.FineReductionReason = patch?.FineReductionReason;
                             dispute.TimeToPayReason = patch?.TimeToPayReason;
-                            dispute = await _oracleDataApiService.UpdateDisputeAsync(dispute.DisputeId, dispute, context.CancellationToken);
+                            dispute = await _oracleDataApiService.UpdateDisputeAsync(dispute.DisputeId, dispute, false, context.CancellationToken);
                         }
                         break;
                     case DisputeUpdateRequestUpdateType.DISPUTANT_EMAIL:

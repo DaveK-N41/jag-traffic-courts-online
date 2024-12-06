@@ -695,7 +695,7 @@ internal partial class OracleDataApiService : IOracleDataApiService
         }
     }
 
-    public async Task<Dispute> UpdateDisputeAsync(long id, Dispute body, CancellationToken cancellationToken)
+    public async Task<Dispute> UpdateDisputeAsync(long id, Dispute body, bool checkUserAssigned, CancellationToken cancellationToken)
     {
         try
         {
@@ -712,7 +712,7 @@ internal partial class OracleDataApiService : IOracleDataApiService
             }
             Oracle.Dispute oracleBody = _mapper.Map<Oracle.Dispute>(body);
 
-            Oracle.Dispute oracle = await _client.UpdateDisputeAsync(id, oracleBody, cancellationToken);
+            Oracle.Dispute oracle = await _client.UpdateDisputeAsync(id, checkUserAssigned, oracleBody, cancellationToken);
 
             await PublishDisputeChanged(id, cancellationToken);
 

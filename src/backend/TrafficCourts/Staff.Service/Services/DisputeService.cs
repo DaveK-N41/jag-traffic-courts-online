@@ -143,7 +143,7 @@ public class DisputeService : IDisputeService,
 
     public async Task<Dispute> UpdateDisputeAsync(long disputeId, ClaimsPrincipal user, string? staffComment, Dispute dispute, CancellationToken cancellationToken)
     {
-        Dispute updatedDispute = await _oracleDataApi.UpdateDisputeAsync(disputeId, dispute, cancellationToken);
+        Dispute updatedDispute = await _oracleDataApi.UpdateDisputeAsync(disputeId, dispute, true, cancellationToken);
 
         // Publish file history
         SaveFileHistoryRecord fileHistoryRecord = Mapper.ToFileHistoryWithNoticeOfDisputeId(
@@ -164,7 +164,7 @@ public class DisputeService : IDisputeService,
         if (dispute != null)
         {
             _logger.LogDebug("Saving dispute before validating");
-            _ = await _oracleDataApi.UpdateDisputeAsync(disputeId, dispute, cancellationToken);
+            _ = await _oracleDataApi.UpdateDisputeAsync(disputeId, dispute, true, cancellationToken);
         }
 
         _logger.LogDebug("Dispute status setting to validated");

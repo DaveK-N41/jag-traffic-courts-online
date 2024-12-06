@@ -352,6 +352,7 @@ public class DisputeController {
 	 *
 	 * @param dispute to be updated
 	 * @param id of the saved {@link Dispute} to update
+	 * @param checkUserAssigned if true, will check if the dispute is assigned to the logged-in user
 	 * @param principal the logged-in user
 	 * @return updated {@link Dispute}
 	 */
@@ -363,9 +364,9 @@ public class DisputeController {
 		@ApiResponse(responseCode = "409", description = "The Dispute has already been assigned to a different user. Dispute cannot be modified until assigned time expires.")
 	})
 	@PutMapping("/dispute/{id}")
-	public ResponseEntity<Dispute> updateDispute(@PathVariable Long id, @RequestBody Dispute dispute, Principal principal) {
+	public ResponseEntity<Dispute> updateDispute(@PathVariable Long id, @RequestBody Dispute dispute, boolean checkUserAssigned, Principal principal) {
 		logger.debug("PUT /dispute/{} called", StructuredArguments.value("disputeId", id));
-		if (!disputeService.assignDisputeToUser(id, principal)) {
+		if (checkUserAssigned && !disputeService.assignDisputeToUser(id, principal)) {
 			return new ResponseEntity<>(null, HttpStatus.CONFLICT);
 		}
 		return new ResponseEntity<Dispute>(disputeService.update(id, dispute), HttpStatus.OK);
