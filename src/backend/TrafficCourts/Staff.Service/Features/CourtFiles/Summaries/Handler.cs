@@ -21,13 +21,28 @@ public class Handler : IRequestHandler<Request, Response>
 
     public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
     {
-        var parameters = GetParameters(request);
+        try
+        {
+            // todo: add validation on the request
+            var parameters = GetParameters(request);
 
-        var pagedCollection = await _repository.GetListAsync(parameters, cancellationToken);
+            var pagedCollection = await _repository.GetListAsync(parameters, cancellationToken);
 
-        var response = CreateResponse(pagedCollection);
+            var response = CreateResponse(pagedCollection);
 
-        return response; 
+            return response;
+        }
+        catch (Exception exception)
+        {
+            // generate an error id that we log and return to the client
+            string errorId = Guid.NewGuid().ToString("n");
+
+            _logger
+                .ForContext("ErrorId", errorId)
+                .Error(exception, "Error fetching data from ORDS");
+
+            return new Response(errorId);
+        }
     }
 
     private Response CreateResponse(OrdsDataService.OrdsDataServicePagedCollectionResponse<OrdsDisputeCaseFileSummary> pagedCollection)
@@ -124,6 +139,8 @@ public class Handler : IRequestHandler<Request, Response>
         AddUtcDateRangeFilter(parameters, "submitted_dt", request.time_zone, request.submitted_from, request.submitted_thru);
         AddUtcDateRangeFilter(parameters, "jj_decision_dt", request.time_zone, request.jj_decision_dt_from, request.jj_decision_dt_thru);
 
+        AddDateRangeFilter(parameters, "appr_tm", request.appearance_dt_from, request.appearance_dt_thru);
+
         if (request.ticket_number is not null) parameters.Add("ticket_number_txt_eq", request.ticket_number);
         if (request.surname is not null) parameters.Add("prof_surname_nm_eq", request.surname);
         if (request.jj_assigned_to is not null) parameters.Add("jj_assigned_to_eq", request.jj_assigned_to);
@@ -135,6 +152,28 @@ public class Handler : IRequestHandler<Request, Response>
         if (request.appearance_courthouse_ids is not null && request.appearances is true)
         {
             parameters.Add("appr_ctrm_agen_id_in", request.appearance_courthouse_ids);
+        }
+    }
+
+    private void AddDateRangeFilter(Dictionary<string, string> parameters, string field, string? from, string? thru)
+    {
+        if (from is null && thru is null)
+        {
+            return;
+        }
+
+        if (from is not null)
+        {
+            DateTime date = DateTime.ParseExact(from, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+            parameters.Add($"{field}_ge", date.ToString("yyyy-MM-dd"));
+        }
+
+        if (thru is not null)
+        {
+            // bump the date by one and search for less than the next day
+            DateTime date = DateTime.ParseExact(thru, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+            date = date.AddDays(1);
+            parameters.Add($"{field}_lt", date.ToString("yyyy-MM-dd"));
         }
 
     }
@@ -177,6 +216,16 @@ public class Handler : IRequestHandler<Request, Response>
         StringBuilder buffer = new StringBuilder();
         string[] clientOrder = request.sort_by.Split(',');
 
+        void Append(string direction, string target)
+        {
+            if (buffer.Length > 0)
+            {
+                buffer.Append(',');
+            }
+            buffer.Append(direction);
+            buffer.Append(target);
+        }
+
         for (int i = 0; i < clientOrder.Length; i++)
         {
             string direction = "";
@@ -214,11 +263,28 @@ public class Handler : IRequestHandler<Request, Response>
                 _ => null
             };
 
+            // special handling for appearance duration as it is two fields in the database
+            if (target is null && item == "appearanceDuration")
+            {
+                if (request.appearances is true)
+                {
+                    Append(direction, "appr_estimated_duration_hh");
+                    Append(direction, "appr_estimated_duration_mi");
+                }
+                else
+                {
+                    _logger.Warning("{IncludeItem} was not included, sorting on {Column} will be ingored", "appearances", item);
+                }
+
+                continue;
+            }
+
             // did we try to sort on columns not included?
             if (target == "appr_ctrm_agen_nm" || target == "appr_ctrm_room_cd" || target == "appr_tm")
             {
                 if (request.appearances is not true)
                 {
+                    _logger.Warning("{IncludeItem} was not included, sorting on {Column} will be ingored", "appearances", item);
                     continue;
                 }
             }
@@ -227,6 +293,7 @@ public class Handler : IRequestHandler<Request, Response>
             {
                 if (request.notice_of_hearing_yn is not true)
                 {
+                    _logger.Warning("{IncludeItem} was not included, sorting on {Column} will be ingored", "notice_of_hearing_yn", item);
                     continue;
                 }
             }
@@ -235,6 +302,7 @@ public class Handler : IRequestHandler<Request, Response>
             {
                 if (request.multiple_officers_yn is not true)
                 {
+                    _logger.Warning("{IncludeItem} was not included, sorting on {Column} will be ingored", "multiple_officers_yn", item);
                     continue;
                 }
             }
@@ -243,18 +311,20 @@ public class Handler : IRequestHandler<Request, Response>
             {
                 if (request.electronic_ticket_yn is not true)
                 {
+                    _logger.Warning("{IncludeItem} was not included, sorting on {Column} will be ingored", "electronic_ticket_yn", item);
                     continue;
                 }
             }
 
-            if (buffer.Length > 0)
+            if (target is not null)
             {
-                buffer.Append(",");
+                Append(direction, target);
             }
-            buffer.Append(direction);
-            buffer.Append(target);
+            else
+            {
+                _logger.Warning("Unknown sort column {Column}", item);
+            }
         }
-
 
         parameters.Add("order", buffer.ToString());
     }
@@ -264,12 +334,20 @@ public class Handler : IRequestHandler<Request, Response>
         if (request.page_size is not null)
         {
             parameters.Add("fetch_rows", request.page_size.Value.ToString());
+
+            if (request.page_size.Value == -1)
+            {
+                // caller wants all the rows
+                parameters.Add("offset_rows", "0");
+                return;
+            }
         }
 
         int pageSize = request.page_size ?? 25;
 
         if (request.page_number is not null)
         {
+            
             // compute the offset_rows
             int offset = (request.page_number.Value - 1) * pageSize;
             parameters.Add("offset_rows", offset.ToString());

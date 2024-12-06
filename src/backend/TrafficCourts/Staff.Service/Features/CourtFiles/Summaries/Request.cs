@@ -23,6 +23,9 @@ public class Request : IRequest<Response>
 
     public string? dispute_status_codes { get; set; }
     public string? appearance_courthouse_ids { get; set; }
+    public string? appearance_dt_from { get; set; }
+    public string? appearance_dt_thru { get; set; }
+
     public string? to_be_heard_at_courthouse_ids { get; set; }
     public string? hearing_type_cd { get; set; }
 

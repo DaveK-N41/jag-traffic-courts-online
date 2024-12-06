@@ -98,6 +98,8 @@ public partial class JJController : StaffControllerBase
     /// <param name="jj_decision_dt_thru">The jj decision date where less or equal to this date. Format must be YYYY-MM-DD.</param>
     /// <param name="dispute_status_codes">The comma separate list of status codes</param>
     /// <param name="appearance_courthouse_ids">The comma separate list of agency ids</param>
+    /// <param name="appearance_dt_from">The appearance date from. Format must be YYYY-MM-DD.</param>
+    /// <param name="appearance_dt_thru">The appearance date thru. Format must be YYYY-MM-DD.</param>
     /// <param name="to_be_heard_at_courthouse_ids">The comma separate list of agency ids</param>
     /// <param name="hearing_type_cd">The hearing type code to search.</param>
     /// <param name="page_number">The page number to fetch. Starts at 1.</param>
@@ -129,6 +131,8 @@ public partial class JJController : StaffControllerBase
         string? jj_decision_dt_thru,
         string? dispute_status_codes,
         string? appearance_courthouse_ids,
+        string? appearance_dt_from,
+        string? appearance_dt_thru,
         string? to_be_heard_at_courthouse_ids,
         string? hearing_type_cd,
         string? sort_by,
@@ -152,6 +156,8 @@ public partial class JJController : StaffControllerBase
             jj_decision_dt_thru = jj_decision_dt_thru,
             dispute_status_codes = dispute_status_codes,
             appearance_courthouse_ids = appearance_courthouse_ids,
+            appearance_dt_from = appearance_dt_from,
+            appearance_dt_thru = appearance_dt_thru,
             to_be_heard_at_courthouse_ids = to_be_heard_at_courthouse_ids,
             hearing_type_cd = hearing_type_cd,
             sort_by = sort_by,
