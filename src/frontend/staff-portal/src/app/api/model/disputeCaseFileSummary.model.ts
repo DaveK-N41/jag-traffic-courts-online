@@ -42,5 +42,6 @@ export interface DisputeCaseFileSummary {
     appearanceCourthouseName?: string | null;
     appearanceRoomCode?: string | null;
     appearanceTs?: string | null;
+    appearanceDuration?: number;
 }
 

@@ -2604,6 +2604,22 @@
               }
             },
             {
+              "name": "appearance_dt_from",
+              "in": "query",
+              "description": "The appearance date from. Format must be YYYY-MM-DD.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "appearance_dt_thru",
+              "in": "query",
+              "description": "The appearance date thru. Format must be YYYY-MM-DD.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
               "name": "to_be_heard_at_courthouse_ids",
               "in": "query",
               "description": "The comma separate list of agency ids",
@@ -5964,6 +5980,10 @@
               "type": "string",
               "format": "date-time",
               "nullable": true
+            },
+            "appearanceDuration": {
+              "type": "integer",
+              "format": "int32"
             }
           },
           "additionalProperties": false

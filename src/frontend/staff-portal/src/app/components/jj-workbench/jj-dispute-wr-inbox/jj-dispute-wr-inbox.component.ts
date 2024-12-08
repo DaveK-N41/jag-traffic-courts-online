@@ -61,7 +61,7 @@ export class JJDisputeWRInboxComponent implements OnInit {
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       jjAssignedTo: this.jjIDIR,
       disputeStatusCodes: [DisputeStatus.New, DisputeStatus.HearingScheduled, DisputeStatus.InProgress, 
-        DisputeStatus.Review, DisputeStatus.RequireMoreInfo].join(","),
+        DisputeStatus.Review].join(","),
       hearingTypeCd: HearingType.WrittenReasons,
       sortBy: this.sortDirection === SortDirection.Asc ? this.sortBy : "-" + this.sortBy,
       pageNumber: this.currentPage,
@@ -95,13 +95,5 @@ export class JJDisputeWRInboxComponent implements OnInit {
   onPageChange(event: number) {
     this.currentPage = event;
     this.getTCODisputes();
-  }
-
-  isCompletedStatus(status: DisputeStatus): boolean {
-    const completedStatuses = new Set([
-      DisputeStatus.Accepted,
-      DisputeStatus.Cancelled,
-      DisputeStatus.Concluded]);
-    return completedStatuses.has(status);
   }
 }
