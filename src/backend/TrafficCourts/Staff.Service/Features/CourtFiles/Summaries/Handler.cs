@@ -363,7 +363,7 @@ public class Handler : IRequestHandler<Request, Response>
             SubmittedTs = dispute.submitted_dt,
             JjDecisionDate = dispute.jj_decision_dt,
             SignatoryName = dispute.signed_by,
-            HearingType = ToJJDisputeHearingType(dispute.hearing_type_cd),
+            HearingType = dispute.hearing_type_cd,
             TicketNumber = dispute.ticket_number_txt,
             ViolationDate = dispute.violation_dt,
             ViolationDateCount = dispute.unique_violation_dt_count,
@@ -373,6 +373,8 @@ public class Handler : IRequestHandler<Request, Response>
             DisputantGivenName1 = dispute.prof_given_1_nm,
             DisputantGivenName2 = dispute.prof_given_2_nm,
             DisputantGivenName3 = dispute.prof_given_3_nm,
+            FineReductionReason = dispute.fine_reduction_reason_txt,
+            TimeToPayReason = dispute.time_to_pay_reason_txt,
             DisputeStatus = new DisputeCaseFileStatus
             {
                 Code = dispute.dispute_status_type_cd,
@@ -424,16 +426,6 @@ public class Handler : IRequestHandler<Request, Response>
             "CNLD" => JJDisputeStatus.CONCLUDED,
             "CANC" => JJDisputeStatus.CANCELLED,
             _ => JJDisputeStatus.UNKNOWN
-        };
-    }
-
-    private static string ToJJDisputeHearingType(string? value)
-    {
-        return value switch
-        {
-            "C" => "COURT_APPEARANCE",
-            "W" => "WRITTEN_REASONS",
-            _ => ""
         };
     }
 }
