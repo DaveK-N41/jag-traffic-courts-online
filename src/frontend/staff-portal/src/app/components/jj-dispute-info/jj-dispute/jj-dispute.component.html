@@ -41,18 +41,18 @@
       <div style="float:inline">
         <span style="float:left">
           <h1><b>
-              <span *ngIf="jjDisputeInfo.hearingType === HearingType.WrittenReasons">Written Reasons
+              <span *ngIf="tcoDisputeInfo.hearingType === HearingTypeCodes.WrittenReasons">Written Reasons
                 Dispute&nbsp;</span>
               <span
-                *ngIf="jjDisputeInfo.hearingType === HearingType.CourtAppearance && jjDisputeInfo.status !== DisputeStatus.RequireCourtHearing">Hearing
+                *ngIf="tcoDisputeInfo.hearingType === HearingTypeCodes.CourtAppearance && tcoDisputeInfo.disputeStatus.code !== DisputeCaseFileStatus.RequireCourtHearing">Hearing
                 Ticket Dispute</span>
-              <span *ngIf="jjDisputeInfo.status === DisputeStatus.RequireCourtHearing">REQUIRES COURT HEARING</span>
+              <span *ngIf="tcoDisputeInfo.disputeStatus.code === DisputeCaseFileStatus.RequireCourtHearing">REQUIRES COURT HEARING</span>
               - {{ lastUpdatedJJDispute.occamDisputantName }} </b></h1>
         </span>
         <span style="float:right">
-          <span *ngIf="jjDisputeInfo.multipleOfficersYn===MultipleOfficers.Y"><button class="mo-btn" disabled="true">{{
+          <span *ngIf="tcoDisputeInfo.multipleOfficersYn===yesNo.Yes"><button class="mo-btn" disabled="true">{{
               "label.multiple_officers_btn" | translate }}</button></span>
-          <span *ngIf="jjDisputeInfo.accidentYn===Accident.Y"><button class="accident-btn" disabled="true">{{
+          <span *ngIf="tcoDisputeInfo.accidentYn===yesNo.Yes"><button class="accident-btn" disabled="true">{{
               "label.accident_btn" | translate }}</button></span>
           <span class="ticket-number">Ticket Number: {{ lastUpdatedJJDispute.ticketNumber }}</span>
         </span>
@@ -206,7 +206,7 @@
           </div>
         </form>
       </section>
-      <section *ngIf="jjDisputeInfo.hearingType === HearingType.CourtAppearance" class="section-sticky">
+      <section *ngIf="tcoDisputeInfo.hearingType === HearingTypeCodes.CourtAppearance" class="section-sticky">
         <ng-container subHeader>
           <span>
             <h3>Court Options</h3>
@@ -283,7 +283,7 @@
           </div>
         </form>
       </section>
-      <section *ngIf="jjDisputeInfo.hearingType === HearingType.CourtAppearance" class="section-sticky">
+      <section *ngIf="tcoDisputeInfo.hearingType === HearingTypeCodes.CourtAppearance" class="section-sticky">
         <ng-container subHeader>
           <span>
             <h3>Court Appearance</h3>
@@ -413,7 +413,7 @@
           </div>
         </form>
       </section>
-      <section *ngIf="jjDisputeInfo.hearingType === HearingType.CourtAppearance" class="section-sticky">
+      <section *ngIf="tcoDisputeInfo.hearingType === HearingTypeCodes.CourtAppearance" class="section-sticky">
         <ng-container subHeader>
           <span>
             <h3>Court Appearances History</h3>
@@ -422,7 +422,7 @@
         <app-jj-dispute-court-appearances [data]="lastUpdatedJJDispute.jjDisputeCourtAppearanceRoPs">
         </app-jj-dispute-court-appearances>
       </section>
-      <section *ngIf="jjDisputeInfo.hearingType === HearingType.WrittenReasons" class="section-sticky">
+      <section *ngIf="tcoDisputeInfo.hearingType === HearingTypeCodes.WrittenReasons" class="section-sticky">
         <ng-container subHeader>
           <span>
             <h3>Disputant Statement</h3>

@@ -1,8 +1,8 @@
-import { Component, OnInit, ViewChild, AfterViewInit, Output, EventEmitter, Input, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
 import { MatSort, Sort } from '@angular/material/sort';
-import { JJDisputeService, JJDispute } from 'app/services/jj-dispute.service';
-import { JJDisputeStatus, JJDisputeHearingType, JJDisputeAccidentYn, JJDisputeMultipleOfficersYn, SortDirection, YesNo, DisputeCaseFileSummary, PagedDisputeCaseFileSummaryCollection } from 'app/api';
+import { JJDisputeService } from 'app/services/jj-dispute.service';
+import { SortDirection, YesNo, DisputeCaseFileSummary, PagedDisputeCaseFileSummaryCollection } from 'app/api';
 import { AuthService, UserRepresentation } from 'app/services/auth.service';
 import { FormControl } from '@angular/forms';
 import { MatDatepicker } from '@angular/material/datepicker';
@@ -16,22 +16,17 @@ import { LoggerService } from '@core/services/logger.service';
   styleUrls: ['./jj-dispute-hearing-inbox.component.scss'],
 })
 export class JJDisputeHearingInboxComponent implements OnInit, AfterViewInit {
-  @Output() jjDisputeInfo: EventEmitter<JJDispute> = new EventEmitter();
+  @Output() tcoDisputeInfo: EventEmitter<DisputeCaseFileSummary> = new EventEmitter();
   @ViewChild(MatSort) sort = new MatSort();
 
   @ViewChild('fauxPicker') private readonly fauxPicker: MatDatepicker<null>; // Temp fix for DatetimePicker styles
 
-  HearingType = JJDisputeHearingType;
-  Accident = JJDisputeAccidentYn;
-  MultipleOfficers = JJDisputeMultipleOfficersYn;
   filterValues: any = {
     jjAssignedTo: '',
     appearanceTs: new Date()
   }
   appearanceDateFilter = new FormControl(null);
   jjAssignedToFilter = new FormControl('');
-  statusComplete = this.jjDisputeService.jjDisputeStatusComplete;
-  statusDisplay: JJDisputeStatus[] = this.jjDisputeService.jjDisputeStatusDisplay;
   jjList: UserRepresentation[];
   tcoDisputes: DisputeCaseFileSummary[] = [];
   tcoDisputesCollection: PagedDisputeCaseFileSummaryCollection = {};
@@ -52,7 +47,7 @@ export class JJDisputeHearingInboxComponent implements OnInit, AfterViewInit {
   currentPage: number = 1;
   totalPages: number = 1;
   sortBy: string = "submittedTs";
-  sortDirection: SortDirection = SortDirection.Desc;
+  sortDirection: SortDirection = SortDirection.Asc;
   disputeStatus = DisputeStatus;
   hearingType = HearingType;
   yesNo = YesNo;
@@ -127,8 +122,8 @@ export class JJDisputeHearingInboxComponent implements OnInit, AfterViewInit {
     }
   }
 
-  backWorkbench(element) {
-    this.jjDisputeInfo.emit(element);
+  backWorkbench(element: DisputeCaseFileSummary) {
+    this.tcoDisputeInfo.emit(element);
   }
 
   sortData(sort: Sort){
@@ -148,5 +143,11 @@ export class JJDisputeHearingInboxComponent implements OnInit, AfterViewInit {
       const jj = this.jjList.find(j => j.idir === jjAssignedTo);
       return jj ? jj.jjDisplayName : '';
     }
+  }
+
+  isEditable(element: DisputeCaseFileSummary){
+    const editableStatuses = new Set([DisputeStatus.New, DisputeStatus.Review, DisputeStatus.InProgress, 
+      DisputeStatus.HearingScheduled]);
+    return editableStatuses.has(element.disputeStatus.code as DisputeStatus);
   }
 }

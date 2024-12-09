@@ -1,9 +1,9 @@
 import { Component, OnInit, ViewChild, Output, EventEmitter } from '@angular/core';
 import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
 import { MatSort, Sort } from '@angular/material/sort';
-import { JJDisputeService, JJDispute } from 'app/services/jj-dispute.service';
+import { JJDisputeService } from 'app/services/jj-dispute.service';
 import { LoggerService } from '@core/services/logger.service';
-import { JJDisputeStatus, SortDirection, DisputeCaseFileSummary, PagedDisputeCaseFileSummaryCollection, YesNo } from 'app/api';
+import { SortDirection, DisputeCaseFileSummary, PagedDisputeCaseFileSummaryCollection, YesNo } from 'app/api';
 import { AuthService } from 'app/services/auth.service';
 import { DisputeStatus } from '@shared/consts/DisputeStatus.model';
 import { HearingType } from '@shared/consts/HearingType.model';
@@ -14,7 +14,7 @@ import { HearingType } from '@shared/consts/HearingType.model';
   styleUrls: ['./jj-dispute-wr-inbox.component.scss'],
 })
 export class JJDisputeWRInboxComponent implements OnInit {
-  @Output() jjDisputeInfo: EventEmitter<JJDispute> = new EventEmitter();
+  @Output() tcoDisputeInfo: EventEmitter<DisputeCaseFileSummary> = new EventEmitter();
   @ViewChild(MatSort) sort = new MatSort();
 
   jjIDIR: string;
@@ -81,8 +81,8 @@ export class JJDisputeWRInboxComponent implements OnInit {
     });
   }
 
-  backWorkbench(element) {
-    this.jjDisputeInfo.emit(element);
+  backWorkbench(element: DisputeCaseFileSummary) {
+    this.tcoDisputeInfo.emit(element);
   }
 
   sortData(sort: Sort){
@@ -95,5 +95,11 @@ export class JJDisputeWRInboxComponent implements OnInit {
   onPageChange(event: number) {
     this.currentPage = event;
     this.getTCODisputes();
+  }
+
+  isEditable(element: DisputeCaseFileSummary){
+    const editableStatuses = new Set([DisputeStatus.New, DisputeStatus.Review, DisputeStatus.InProgress, 
+      DisputeStatus.HearingScheduled]);
+    return editableStatuses.has(element.disputeStatus.code as DisputeStatus);
   }
 }

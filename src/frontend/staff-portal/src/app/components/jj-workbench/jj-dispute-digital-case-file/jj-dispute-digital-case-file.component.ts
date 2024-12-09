@@ -1,9 +1,8 @@
 import { Component, OnInit, ViewChild, Output, EventEmitter, Input } from '@angular/core';
 import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
 import { MatSort, Sort } from '@angular/material/sort';
-import { JJDispute, JJDisputeService } from 'app/services/jj-dispute.service';
-import { DisputeCaseFileSummary, JJDisputeHearingType, PagedDisputeCaseFileSummaryCollection, SortDirection } from 'app/api';
-import { Observable } from 'rxjs';
+import { JJDisputeService } from 'app/services/jj-dispute.service';
+import { DisputeCaseFileSummary, PagedDisputeCaseFileSummaryCollection, SortDirection } from 'app/api';
 import { TableFilter, TableFilterKeys } from '@shared/models/table-filter-options.model';
 import { TableFilterService } from 'app/services/table-filter.service';
 import { LoggerService } from '@core/services/logger.service';
@@ -16,13 +15,13 @@ import { DisputeStatus } from '@shared/consts/DisputeStatus.model';
 })
 export class JJDisputeDigitalCaseFileComponent implements OnInit {
   @Input() tabIndex: number;
-  @Output() jjDisputeInfo: EventEmitter<JJDispute> = new EventEmitter();
+  @Output() tcoDisputeInfo: EventEmitter<DisputeCaseFileSummary> = new EventEmitter();
   @ViewChild(MatSort) sort = new MatSort();
 
   tcoDisputes: DisputeCaseFileSummary[] = [];
   tcoDisputesCollection: PagedDisputeCaseFileSummaryCollection = {};
   dataSource = new MatTableDataSource(this.tcoDisputes);
-  tableFilterKeys: TableFilterKeys[] = ["dateSubmittedFrom", "dateSubmittedTo", "occamDisputantName", 
+  tableFilterKeys: TableFilterKeys[] = ["dateSubmittedFrom", "dateSubmittedTo", "surname", 
     "courthouseLocation", "ticketNumber"];
 
   displayedColumns: string[] = [
@@ -61,7 +60,7 @@ export class JJDisputeDigitalCaseFileComponent implements OnInit {
       submittedFrom: this.filters.dateSubmittedFrom,
       submittedThru: this.filters.dateSubmittedTo,
       ticketNumber: this.filters.ticketNumber ? this.filters.ticketNumber.toUpperCase() : "",
-      surname: this.filters.occamDisputantName ?? "",
+      surname: this.filters.surname ?? "",
       toBeHeardAtCourthouseIds: this.filters.courthouseLocation && this.filters.courthouseLocation.length > 0 ? 
         this.filters.courthouseLocation.map(x => x.id).join(",") : "",
       sortBy: this.sortDirection === SortDirection.Asc ? this.sortBy : "-" + this.sortBy,
@@ -82,8 +81,8 @@ export class JJDisputeDigitalCaseFileComponent implements OnInit {
     });
   }
 
-  backWorkbench(element) {
-    this.jjDisputeInfo.emit(element);
+  backWorkbench(element: DisputeCaseFileSummary) {
+    this.tcoDisputeInfo.emit(element);
   }
 
   onApplyFilter(dataFilters: TableFilter) {

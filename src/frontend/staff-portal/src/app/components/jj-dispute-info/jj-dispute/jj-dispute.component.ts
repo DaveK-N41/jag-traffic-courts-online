@@ -2,7 +2,7 @@ import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild }
 import { LoggerService } from '@core/services/logger.service';
 import { JJDisputeService, JJDispute } from '../../../services/jj-dispute.service';
 import { Observable, map } from 'rxjs';
-import { JJDisputedCount, JJDisputeStatus, JJDisputedCountRequestReduction, JJDisputedCountRequestTimeToPay, JJDisputeHearingType, JJDisputeCourtAppearanceRoPAppCd, JJDisputeCourtAppearanceRoPCrown, JJDisputeCourtAppearanceRoPDattCd, JJDisputeCourtAppearanceRoPJjSeized, FileMetadata, JJDisputeElectronicTicketYn, JJDisputeNoticeOfHearingYn, TicketImageDataJustinDocumentReportType, DocumentType, JJDisputeContactType, JJDisputedCountRoPFinding, Province, Language, JJDisputeDisputantAttendanceType, JJDisputeAccidentYn, JJDisputeMultipleOfficersYn, JJDisputeSignatoryType, DcfTemplateType } from 'app/api/model/models';
+import { JJDisputedCount, JJDisputeStatus, JJDisputedCountRequestReduction, JJDisputedCountRequestTimeToPay, JJDisputeHearingType, JJDisputeCourtAppearanceRoPAppCd, JJDisputeCourtAppearanceRoPCrown, JJDisputeCourtAppearanceRoPDattCd, JJDisputeCourtAppearanceRoPJjSeized, FileMetadata, JJDisputeElectronicTicketYn, JJDisputeNoticeOfHearingYn, TicketImageDataJustinDocumentReportType, DocumentType, JJDisputeContactType, JJDisputedCountRoPFinding, Province, Language, JJDisputeDisputantAttendanceType, JJDisputeAccidentYn, JJDisputeMultipleOfficersYn, JJDisputeSignatoryType, DcfTemplateType, DisputeCaseFileSummary, YesNo } from 'app/api/model/models';
 import { DialogOptions } from '@shared/dialogs/dialog-options.model';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { AuthService, UserRepresentation } from 'app/services/auth.service';
@@ -12,11 +12,13 @@ import { ConfirmReasonDialogComponent } from '@shared/dialogs/confirm-reason-dia
 import { ConfirmDialogComponent } from '@shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { ConfigService } from '@config/config.service';
 import { DocumentService } from 'app/api/api/document.service';
-import { DisputeLockService } from 'app/api/api/disputeLock.service';
 import { HistoryRecordService } from 'app/services/history-records.service';
 import { PrintOptions } from '@shared/models/print-options.model';
 import { UserGroup } from '@shared/enums/user-group.enum';
 import { TabType } from '@shared/enums/tab-type.enum';
+import { Dispute } from 'app/services/dispute.service';
+import { DisputeStatus } from '@shared/consts/DisputeStatus.model';
+import { HearingType } from '@shared/consts/HearingType.model';
 
 @Component({
   selector: 'app-jj-dispute',
@@ -29,7 +31,7 @@ export class JJDisputeComponent implements OnInit {
   @ViewChild("fileHistory") fileHistoryAnchor: ElementRef;
   @ViewChild("fileRemarks") fileRemarksAnchor: ElementRef;
 
-  @Input() jjDisputeInfo: JJDispute
+  @Input() tcoDisputeInfo: DisputeCaseFileSummary;
   @Input() type: TabType;
   @Input() isViewOnly = false;
   @Input() enableStaffSupport = false;
@@ -58,6 +60,9 @@ export class JJDisputeComponent implements OnInit {
   MultipleOfficers = JJDisputeMultipleOfficersYn;
   SignatoryType = JJDisputeSignatoryType;
   tabTypes = TabType;
+  DisputeCaseFileStatus = DisputeStatus;
+  HearingTypeCodes = HearingType;
+  yesNo = YesNo;
 
   ticketInformationForm: FormGroup = this.formBuilder.group({
     occamDisputantSurnameNm: [null, Validators.maxLength(30)],
@@ -157,7 +162,7 @@ export class JJDisputeComponent implements OnInit {
       assignVTC = true;
     }
 
-    this.jjDisputeService.getJJDispute(this.jjDisputeInfo.id, this.jjDisputeInfo.ticketNumber, assignVTC).subscribe(response => {
+    this.jjDisputeService.getJJDispute(this.tcoDisputeInfo.id, this.tcoDisputeInfo.ticketNumber, assignVTC).subscribe(response => {
       this.retrieving = false;
       this.logger.info(
         'JJDisputeComponent::getJJDispute response',

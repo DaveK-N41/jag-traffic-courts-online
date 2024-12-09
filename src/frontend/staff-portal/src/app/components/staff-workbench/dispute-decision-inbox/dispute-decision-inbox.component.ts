@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, Output, EventEmitter, Input } from '@angular/core';
 import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
 import { MatSort, Sort } from '@angular/material/sort';
-import { JJDispute, JJDisputeService } from 'app/services/jj-dispute.service';
+import { JJDisputeService } from 'app/services/jj-dispute.service';
 import { LoggerService } from '@core/services/logger.service';
 import { DisputeCaseFileSummary, PagedDisputeCaseFileSummaryCollection, SortDirection } from 'app/api';
 import { AuthService } from 'app/services/auth.service';
@@ -9,7 +9,6 @@ import { LookupsService } from 'app/services/lookups.service';
 import { TableFilter, TableFilterKeys } from '@shared/models/table-filter-options.model';
 import { TableFilterService } from 'app/services/table-filter.service';
 import { DisputeStatus } from '@shared/consts/DisputeStatus.model';
-import { forkJoin, map } from 'rxjs';
 
 @Component({
   selector: 'app-dispute-decision-inbox',
@@ -20,7 +19,7 @@ export class DisputeDecisionInboxComponent implements OnInit {
   @Input() tabIndex: number;
   courthouseTeamNames = ["A", "B", "C", "D"];
 
-  @Output() jjDisputeInfo: EventEmitter<JJDispute> = new EventEmitter();
+  @Output() tcoDisputeInfo: EventEmitter<DisputeCaseFileSummary> = new EventEmitter();
   @ViewChild(MatSort) sort = new MatSort();
 
   IDIR: string = "";
@@ -28,7 +27,7 @@ export class DisputeDecisionInboxComponent implements OnInit {
   tcoDisputes: DisputeCaseFileSummary[] = [];
   tcoDisputesCollection: PagedDisputeCaseFileSummaryCollection = {};
   dataSource = new MatTableDataSource(this.tcoDisputes);
-  tableFilterKeys: TableFilterKeys[] = ["decisionDateFrom", "decisionDateTo", "occamDisputantName", "courthouseLocation", "ticketNumber", "team"];
+  tableFilterKeys: TableFilterKeys[] = ["decisionDateFrom", "decisionDateTo", "surname", "courthouseLocation", "ticketNumber", "team"];
 
   displayedColumns: string[] = [
     "ticketNumber",
@@ -79,8 +78,8 @@ export class DisputeDecisionInboxComponent implements OnInit {
     });
   }
 
-  backWorkbench(value: JJDispute) {
-    this.jjDisputeInfo.emit(value);
+  backWorkbench(value: DisputeCaseFileSummary) {
+    this.tcoDisputeInfo.emit(value);
   }
 
   getTCODisputes(): void {
@@ -92,7 +91,7 @@ export class DisputeDecisionInboxComponent implements OnInit {
       jjDecisionDtFrom: this.filters.decisionDateFrom,
       jjDecisionDtThru: this.filters.decisionDateTo,
       ticketNumber: this.filters.ticketNumber ? this.filters.ticketNumber.toUpperCase() : "",
-      surname: this.filters.occamDisputantName ?? "",
+      surname: this.filters.surname ?? "",
       disputeStatusCodes: DisputeStatus.Confirmed + "," + DisputeStatus.RequireCourtHearing,
       toBeHeardAtCourthouseIds: this.filters.courthouseLocation && this.filters.courthouseLocation.length > 0 ? 
         this.filters.courthouseLocation.map(x => x.id).join(",") : 

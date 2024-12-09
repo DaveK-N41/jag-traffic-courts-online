@@ -7,7 +7,7 @@ export class TableFilter {
   decisionDateTo?: string;
   ticketNumber?: string;
   disputantSurname?: string;
-  occamDisputantName?: string;
+  surname?: string;
   team?: string;
   courthouseLocation?: Agency[];
   status?: DisputeStatus | '';

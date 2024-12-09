@@ -35,14 +35,13 @@
     <app-ticket-inbox [tabIndex]="0" (disputeInfo)="changeDispute($event, tabTypes.TICKET_VALIDATION)"></app-ticket-inbox>
   </ng-container>
   <ng-container *ngIf="tabSelected?.value === 1">
-    <app-dispute-decision-inbox [tabIndex]="1" (jjDisputeInfo)="changeJJDispute($event, tabTypes.DECISION_VALIDATION)"></app-dispute-decision-inbox>
+    <app-dispute-decision-inbox [tabIndex]="1" (tcoDisputeInfo)="changeTCODispute($event, tabTypes.DECISION_VALIDATION)"></app-dispute-decision-inbox>
   </ng-container>
   <ng-container *ngIf="tabSelected?.value === 2">
     <app-update-request-inbox [tabIndex]="2" (disputeInfo)="changeDispute($event, tabTypes.UPDATE_REQUESTS)"></app-update-request-inbox>
   </ng-container>
   <ng-container *ngIf="tabSelected?.value === 3">
-    <app-jj-dispute-digital-case-file [tabIndex]="3" (jjDisputeInfo)="changeJJDispute($event, tabTypes.DCF)"
-      [data$]="data$"></app-jj-dispute-digital-case-file>
+    <app-jj-dispute-digital-case-file [tabIndex]="3" (tcoDisputeInfo)="changeTCODispute($event, tabTypes.DCF)"></app-jj-dispute-digital-case-file>
   </ng-container>
 </app-page>
 <ng-container *ngIf="showTicket">
@@ -53,5 +52,5 @@
   <app-update-request-info *ngIf="tabSelected.value === 2" (backInbox)="backInbox()"
     [disputeInfo]="disputeInfo"></app-update-request-info>
   <app-jj-dispute *ngIf="tabSelected.value === 1 || tabSelected.value === 3" (backInbox)="backInbox()"
-    [jjDisputeInfo]="jjDisputeInfo" [type]="tabTypeSelected" [isViewOnly]="true" [enableStaffSupport]="true"></app-jj-dispute>
+    [tcoDisputeInfo]="tcoDisputeInfo" [type]="tabTypeSelected" [isViewOnly]="true" [enableStaffSupport]="true"></app-jj-dispute>
 </ng-container>

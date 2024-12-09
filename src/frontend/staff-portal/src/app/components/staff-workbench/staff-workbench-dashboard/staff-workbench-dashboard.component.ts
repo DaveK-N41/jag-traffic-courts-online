@@ -1,18 +1,16 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { filter, Subscription, Observable } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { FormControl } from '@angular/forms';
 import { Dispute } from 'app/services/dispute.service';
 import { MatLegacyTab as MatTab } from '@angular/material/legacy-tabs';
-import { JJDispute } from 'app/services/jj-dispute.service';
 import { DisputeDecisionInboxComponent } from '../dispute-decision-inbox/dispute-decision-inbox.component';
 import { TicketInboxComponent } from '../ticket-inbox/ticket-inbox.component';
 import { DisputeService } from 'app/services/dispute.service';
 import { UpdateRequestInboxComponent } from '../update-request-inbox/update-request-inbox.component';
-import { Store } from '@ngrx/store';
-import { JJDisputeStore } from 'app/store';
 import { AuthService } from 'app/services/auth.service';
 import { UserGroup } from '@shared/enums/user-group.enum';
 import { TabType } from '@shared/enums/tab-type.enum';
+import { DisputeCaseFileSummary } from 'app/api';
 
 @Component({
   selector: 'app-staff-workbench-dashboard',
@@ -27,8 +25,7 @@ export class StaffWorkbenchDashboardComponent implements OnInit {
   showTicket: boolean = false;
   decidePopup = '';
   disputeInfo: Dispute;
-  data$: Observable<JJDispute[]>;
-  jjDisputeInfo: JJDispute;
+  tcoDisputeInfo: DisputeCaseFileSummary;
   tabTypes = TabType;
   tabTypeSelected: TabType;
 
@@ -44,7 +41,6 @@ export class StaffWorkbenchDashboardComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private disputeService: DisputeService,
-    private store: Store
   ) {
   }
   
@@ -57,7 +53,6 @@ export class StaffWorkbenchDashboardComponent implements OnInit {
         this.hasDCFPermission = this.authService.checkRoles([UserGroup.VTC_STAFF, UserGroup.SUPPORT_STAFF]);
       }
     });
-    this.data$ = this.store.select(JJDisputeStore.Selectors.JJDisputes).pipe(filter(i => !!i));
   }
 
   changeDispute(dispute: Dispute, type: TabType) {
@@ -71,8 +66,8 @@ export class StaffWorkbenchDashboardComponent implements OnInit {
     this.showTicket = true;
   }
 
-  changeJJDispute(jjDispute: JJDispute, type: TabType) {
-    this.jjDisputeInfo = jjDispute;
+  changeTCODispute(tcoDispute: DisputeCaseFileSummary, type: TabType) {
+    this.tcoDisputeInfo = tcoDispute;
     this.tabTypeSelected = type;
     this.showTicket = true;
   }

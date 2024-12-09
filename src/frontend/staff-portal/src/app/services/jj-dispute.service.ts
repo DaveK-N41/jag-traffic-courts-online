@@ -1,7 +1,7 @@
 import { ConfigService } from '@config/config.service';
 import { LoggerService } from '@core/services/logger.service';
 import { ToastService } from '@core/services/toast.service';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { HttpClient, HttpContext, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { EventEmitter, Injectable } from '@angular/core';
@@ -39,28 +39,30 @@ export class JJDisputeService {
   ) {
   }
 
+  // TODO: Need to clean up store dispatches once the new v2 urls in place
   /**
      * Get the JJ disputes from RSI
      *
      * @param none
      */
   public getJJDisputes(): Observable<JJDispute[]> {
-    return this.jjApiService.apiJjDisputesGet()
-      .pipe(
-        map((response: JJDispute[]) => {
-          this.logger.info('jj-DisputeService::getJJDisputes', response);
-          response.map(jJDispute => this.toDisplay(jJDispute));
-          return response;
-        }),
-        catchError((error: any) => {
-          this.toastService.openErrorToast(this.configService.dispute_error);
-          this.logger.error(
-            'jj-DisputeService::getJJDisputes error has occurred: ',
-            error
-          );
-          throw error;
-        })
-      );
+    // return this.jjApiService.apiJjDisputesGet()
+    //   .pipe(
+    //     map((response: JJDispute[]) => {
+    //       this.logger.info('jj-DisputeService::getJJDisputes', response);
+    //       response.map(jJDispute => this.toDisplay(jJDispute));
+    //       return response;
+    //     }),
+    //     catchError((error: any) => {
+    //       this.toastService.openErrorToast(this.configService.dispute_error);
+    //       this.logger.error(
+    //         'jj-DisputeService::getJJDisputes error has occurred: ',
+    //         error
+    //       );
+    //       throw error;
+    //     })
+    //   );
+    return of([]);
   }
 
   public getTCODisputes(params: { appearances?: boolean, noticeOfHearingYn?: boolean, multipleOfficersYn?: boolean, 

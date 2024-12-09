@@ -69,14 +69,14 @@
       </mat-form-field>
     </div>
   </div>
-  <div fxFlex fxFlex.gt-md="30" *ngIf="tableFilterConfigs.occamDisputantName">
+  <div fxFlex fxFlex.gt-md="30" *ngIf="tableFilterConfigs.surname">
     <div fxFlex="30">
       <label class="vcenter" for="surname"><span class="BC-Gov-15px-blue-text"><b>Surname:</b></span></label>
     </div>
     <div fxFlex>
       <mat-form-field appearance="outline">
-        <input id="surname" name="surname" matInput [(ngModel)]="dataFilters.occamDisputantName" type="search"
-          (keyup)="onApplyFilter('occamDisputantName', $event.target.value)" autocomplete="off" class="input" />
+        <input id="surname" name="surname" matInput [(ngModel)]="dataFilters.surname" type="search"
+          (keyup)="onApplyFilter('surname', $event.target.value)" autocomplete="off" class="input" />
       </mat-form-field>
     </div>
   </div>
