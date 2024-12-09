@@ -5984,6 +5984,14 @@
             "appearanceDuration": {
               "type": "integer",
               "format": "int32"
+            },
+            "timeToPayReason": {
+              "type": "string",
+              "nullable": true
+            },
+            "fineReductionReason": {
+              "type": "string",
+              "nullable": true
             }
           },
           "additionalProperties": false

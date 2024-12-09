@@ -5,7 +5,7 @@ import { LookupsService } from 'app/services/lookups.service';
 import { JJDisputeService } from 'app/services/jj-dispute.service';
 import { LoggerService } from '@core/services/logger.service';
 import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
-import { DisputeCaseFileSummary, PagedDisputeCaseFileSummaryCollection, SortDirection, YesNo } from 'app/api';
+import { DisputeCaseFileSummary, PagedDisputeCaseFileSummaryCollection, SortDirection, YesNo, Agency } from 'app/api';
 import { AuthService, UserRepresentation } from 'app/services/auth.service';
 import { HearingType } from '@shared/consts/HearingType.model';
 import { DisputeStatus } from '@shared/consts/DisputeStatus.model';
@@ -53,8 +53,6 @@ export class JJDisputeWRAssignmentsComponent implements OnInit {
     this.authService.jjList$.subscribe(result => {
       this.jjList = result;
     });
-    this.initializeCourthouseTeamCounts();
-    this.getCourthouseAgencyIds();
   }
 
   initializeCourthouseTeamCounts(): void {
@@ -67,16 +65,20 @@ export class JJDisputeWRAssignmentsComponent implements OnInit {
   }
 
   getCourthouseAgencyIds() {
-    this.courthouseTeamCounts.forEach(courthouseTeamCount => {
-      let matchingTeams = this.lookupsService.courthouseTeams.filter(x => x.__team === courthouseTeamCount.team);
-      let ids = matchingTeams.flatMap(team => 
-        this.lookupsService.courthouseAgencies.filter(agency => agency.name.toLowerCase() === team.name.toLowerCase()).map(agency => agency.id));
-      this.courthouseTeamIds[courthouseTeamCount.team] = ids;
+    this.lookupsService.getCourthouseAgencies().subscribe((agencies: Agency[]) => {
+      this.courthouseTeamCounts.forEach(courthouseTeamCount => {
+        let matchingTeams = this.lookupsService.courthouseTeams.filter(x => x.__team === courthouseTeamCount.team);
+        let ids = matchingTeams.flatMap(team => 
+          agencies.filter(agency => agency.name.toLowerCase() === team.name.toLowerCase()).map(agency => agency.id));
+        this.courthouseTeamIds[courthouseTeamCount.team] = ids;
+      });
+      this.getTCODisputes();
     });
   }
 
   ngOnInit(): void {
-    this.getTCODisputes();
+    this.initializeCourthouseTeamCounts();
+    this.getCourthouseAgencyIds();    
   }
 
   getTCODisputes() {
@@ -101,8 +103,12 @@ export class JJDisputeWRAssignmentsComponent implements OnInit {
         bulkAssign: false
       })) as DisputeCaseFileSummaryTeam[];
       this.dataSource.data = this.tcoDisputes;
-      this.courthouseTeamCounts[this.currentTeam].assignedCount = this.tcoDisputes.filter(x => x.jjAssignedTo).length;
-      this.courthouseTeamCounts[this.currentTeam].unassignedCount = this.tcoDisputes.filter(x => !x.jjAssignedTo).length;
+      if (this.sortBy === 'timeToPayReason') {
+        this.sortByType();
+      }
+      let courthouseTeamCount = this.courthouseTeamCounts.find(x => x.team === this.currentTeam);
+      courthouseTeamCount.assignedCount = this.tcoDisputes.filter(x => x.jjAssignedTo).length;
+      courthouseTeamCount.unassignedCount = this.tcoDisputes.filter(x => !x.jjAssignedTo).length;
     });
   }
 
@@ -111,12 +117,11 @@ export class JJDisputeWRAssignmentsComponent implements OnInit {
   }
 
   getType(element: DisputeCaseFileSummary): string {
-    // if (element.timeToPayReason && element.fineReductionReason)
-    //   return "Time to pay/Fine";
-    // else if (element.timeToPayReason)
-    //   return "Time to pay";
-    // else return "Fine";
-    return "";
+    if (element.timeToPayReason && element.fineReductionReason)
+      return "Time to pay/Fine";
+    else if (element.timeToPayReason)
+      return "Time to pay";
+    else return "Fine";
   }
 
   filterByTeam(team: string) {    
@@ -173,17 +178,7 @@ export class JJDisputeWRAssignmentsComponent implements OnInit {
     this.sortBy = sort.active;
     this.sortDirection = sort.direction ? sort.direction as SortDirection : SortDirection.Desc;
     if (this.sortBy === 'timeToPayReason') {
-      this.tcoDisputes.sort((a, b) => {
-        const typeA = this.getType(a);
-        const typeB = this.getType(b);
-        if (typeA < typeB) {
-          return this.sortDirection === 'asc' ? -1 : 1;
-        } else if (typeA > typeB) {
-          return this.sortDirection === 'asc' ? 1 : -1;
-        } else {
-          return 0;
-        }
-      });
+      this.sortByType();
     } else {
       this.getTCODisputes();
     }
@@ -195,6 +190,20 @@ export class JJDisputeWRAssignmentsComponent implements OnInit {
 
   getUnassignedCount() {
     return this.courthouseTeamCounts.find(x => x.team === this.currentTeam).unassignedCount;
+  }
+
+  sortByType() {
+    this.dataSource.data = this.tcoDisputes.sort((a, b) => {
+      const typeA = this.getType(a);
+      const typeB = this.getType(b);
+      if (typeA.toLowerCase() < typeB.toLowerCase()) {
+        return this.sortDirection === 'asc' ? -1 : 1;
+      } else if (typeA.toLowerCase() > typeB.toLowerCase()) {
+        return this.sortDirection === 'asc' ? 1 : -1;
+      } else {
+        return 0;
+      }
+    });
   }
 }
 

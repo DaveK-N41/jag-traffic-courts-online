@@ -43,5 +43,7 @@ export interface DisputeCaseFileSummary {
     appearanceRoomCode?: string | null;
     appearanceTs?: string | null;
     appearanceDuration?: number;
+    timeToPayReason?: string | null;
+    fineReductionReason?: string | null;
 }
 

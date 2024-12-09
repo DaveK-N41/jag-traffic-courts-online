@@ -7,9 +7,6 @@
         <span style="float: left; margin-right: 20px !important; vertical-align: middle; color: #003366">
           <h2>TEAM {{ courthouseTeamCount.team }}</h2>
         </span>
-        <span style="float: right; color: black; vertical-align: middle;">
-          <h1><b>{{ courthouseTeamCount.unassignedCount}}</b></h1>
-        </span>
       </mat-button-toggle>
     </mat-button-toggle-group>
   </div>
@@ -38,7 +35,7 @@
   </div><br />
 
   <!--- table of results -->
-  <table mat-table [dataSource]="dataSource" matSort>
+  <table mat-table [dataSource]="dataSource" matSort (matSortChange)="sortData($event)">
     <ng-container matColumnDef="assignedIcon">
       <th mat-header-cell *matHeaderCellDef style="width: 50px !important;">
       </th>
