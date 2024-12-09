@@ -44,6 +44,9 @@ public class DisputeCaseFileSummary
     /// If zero, there is no estimated duration.
     /// </summary>
     public int AppearanceDuration { get; set; }
+
+    public string? TimeToPayReason { get; set; }
+    public string? FineReductionReason { get; set; }
 }
 
 public class DisputeCaseFileStatus
