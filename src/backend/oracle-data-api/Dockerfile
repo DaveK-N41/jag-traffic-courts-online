@@ -4,7 +4,7 @@ ARG RUNTIME_IMAGE=eclipse-temurin
 #############################################################################################
 ###              Stage where Docker is building spring boot app using maven               ###
 #############################################################################################
-FROM $BUILD_IMAGE:3.8.6-jdk-11 as build
+FROM $BUILD_IMAGE:3.8.6-jdk-11 AS build
 
 ARG SKIP_TESTS=true
 

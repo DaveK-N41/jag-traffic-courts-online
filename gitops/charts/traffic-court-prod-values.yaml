@@ -238,7 +238,7 @@ staff-api:
   pdb:
     create: true
   image:
-    tag: "2.5.1"
+    tag: "2.5.2"
     pullPolicy: Always
   env:    
     "Jwt__Audience": "staff-api"
@@ -263,7 +263,7 @@ staff-web:
   pdb:
     create: true
   image:
-    tag: "2.5.1"
+    tag: "2.5.2"
     pullPolicy: Always
   route:
     # https://test.jag.gov.bc.ca
@@ -282,7 +282,7 @@ staff-web:
     {
         "production": true,
         "environment": "prod",
-        "version": "2.5.1",
+        "version": "2.5.2",
         "useMockServices": false,
         "apiBaseUrl": "/api",
         "features": {
@@ -407,7 +407,7 @@ workflow-service:
   pdb:
     create: true
   image:
-    tag: "2.5.1"
+    tag: "2.5.2"
     pullPolicy: Always
   env:
     "EmailConfiguration__Sender": "DoNotReply@gov.bc.ca"
@@ -416,7 +416,7 @@ workflow-service:
     "MassTransit__Transport": "RabbitMq"
     "RabbitMq__UseQuorumQueues": "true"
     "COMS__BASEURL": "http://common-object-management-service:3000"
-    "VIRUSSCAN__BASEURL": "http://virus-scan:8080"
+    "ClamAV__Server": "clamav.0198bb-prod.svc.cluster.local"
   saga:
     db:
       secretName: "postgres-app-pguser-masstransit"

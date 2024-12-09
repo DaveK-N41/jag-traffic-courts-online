@@ -1,10 +1,13 @@
 ﻿using MailKit.Net.Smtp;
 using MailKit.Security;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using TrafficCourts.Workflow.Service.Configuration;
 
 namespace TrafficCourts.Workflow.Service.Services;
 
-public class SmtpClientFactory : ISmtpClientFactory
+public partial class SmtpClientFactory : ISmtpClientFactory
 {
     private readonly ILogger<SmtpClientFactory> _logger;
     private readonly SmtpConfiguration _stmpConfiguration;
@@ -22,7 +25,13 @@ public class SmtpClientFactory : ISmtpClientFactory
         try
         {
             SmtpClient smtp = new();
-            
+
+            if (_stmpConfiguration.IgnoreCertificateValidation)
+            {
+                LogCertificateValidationDisabled();
+                smtp.ServerCertificateValidationCallback = RemoteCertificateValidationCallback;
+            }
+
             await smtp.ConnectAsync(_stmpConfiguration.Host, _stmpConfiguration.Port, SecureSocketOptions.Auto, cancellationToken)
                 .ConfigureAwait(false);
             
@@ -118,5 +127,59 @@ public class SmtpClientFactory : ISmtpClientFactory
             _logger.LogError(exception, "General smtp connection exception thrown");
             throw new SmtpConnectFailedException("General smtp connection exception thrown", exception);
         }
+    }
+
+    private bool RemoteCertificateValidationCallback(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
+    {
+        if (sslPolicyErrors == SslPolicyErrors.None)
+        {
+            return true; // Certificate is valid
+        }
+
+        LogCertificateValidationError(certificate, chain, sslPolicyErrors);
+        return true;
+    }
+
+    [LoggerMessage(EventId = 1, Level = LogLevel.Warning, Message = "TLS certificate validation failed, will ignore certificate errors.", EventName = "CertificateValidationError")]
+    private partial void LogCertificateValidationError(
+        [TagProvider(typeof(TagProvider), nameof(TagProvider.RecordTags), OmitReferenceName = true)]
+        X509Certificate? certificate,
+        [TagProvider(typeof(TagProvider), nameof(TagProvider.RecordTags), OmitReferenceName = true)]
+        X509Chain? chain,
+        [TagProvider(typeof(TagProvider), nameof(TagProvider.RecordTags), OmitReferenceName = true)]
+        SslPolicyErrors policyErrors);
+
+    [LoggerMessage(EventId = 2, Level = LogLevel.Warning, Message = "TLS certificate validation has been disabled", EventName = "CertificateValidationDisabled")]
+    private partial void LogCertificateValidationDisabled();
+}
+
+internal static partial class TagProvider
+{
+
+    public static void RecordTags(ITagCollector collector, X509Certificate? certificate)
+    {
+        if (certificate?.Subject is not null)
+        {
+            collector.Add("CertificateSubject", certificate.Subject);
+        }
+    }
+
+    public static void RecordTags(ITagCollector collector, X509Chain? chain)
+    {
+        if (chain is not null)
+        {
+            StringBuilder builder = new();
+            foreach (X509ChainElement element in chain.ChainElements)
+            {
+                builder.AppendLine(element.Certificate.Subject);
+            }
+            string subjectChain = builder.ToString();
+            collector.Add("CertificateChain", subjectChain);
+        }
+    }
+
+    public static void RecordTags(ITagCollector collector, SslPolicyErrors sslPolicyErrors)
+    {
+        collector.Add("SslPolicyErrors", sslPolicyErrors);
     }
 }
