@@ -10,7 +10,7 @@ public class DisputeCaseFileSummary
     public DateTimeOffset? SubmittedTs { get; set; }
     public System.DateTimeOffset? JjDecisionDate { get; set; }
     public string SignatoryName { get; set; }
-    public JJDisputeHearingType? HearingType { get; set; }
+    public string? HearingType { get; set; }
     public string TicketNumber { get; set; }
     public DateTimeOffset? ViolationDate { get; set; }
     public int ViolationDateCount { get; set; }
@@ -21,11 +21,8 @@ public class DisputeCaseFileSummary
     public string DisputantGivenName2 { get; set; }
     public string DisputantGivenName3 { get; set; }
     
-    public JJDisputeStatus Status { get; set; }
-    public string DisputeStatusCd { get; set; }
-    public string DisputeStatusDescription { get; set; }
+    public DisputeCaseFileStatus DisputeStatus { get; set; }
 
-    public string StatusDescription { get; set; }
     public string PoliceDetachment { get; set; }
     public decimal? PoliceDetachmentId { get; set; }
     public YesNo? AccidentYn { get; set; }
@@ -41,4 +38,19 @@ public class DisputeCaseFileSummary
     public string? AppearanceCourthouseName { get; set; }
     public string? AppearanceRoomCode { get; set; }
     public DateTimeOffset? AppearanceTs { get; set; }
+
+    /// <summary>
+    /// The estimated appearnce duration in minutes.
+    /// If zero, there is no estimated duration.
+    /// </summary>
+    public int AppearanceDuration { get; set; }
+
+    public string? TimeToPayReason { get; set; }
+    public string? FineReductionReason { get; set; }
+}
+
+public class DisputeCaseFileStatus
+{
+    public string Code { get; set; }
+    public string Description { get; set; }
 }

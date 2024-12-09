@@ -250,4 +250,30 @@ public class LookupController : StaffControllerBase
 
         return Ok(response.Items);
     }
+
+
+    /// <summary> 
+    /// Returns a list of dispute case file status types.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    /// <response code="200">OK</response>
+    /// <response code="401">Request lacks valid authentication credentials.</response>
+#if DEBUG
+    [AllowAnonymous]
+#endif
+    [HttpGet]
+    [Route("/api/[controller]/dispute-case-file-statuses/v2")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(IList<DisputeCaseFileStatus>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> DisputeCaseFileStatusesV2Async(CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("Retrieving Dispute Case File Statuses");
+
+        var request = new Features.Lookups.DisputeCaseFileStatusTypes.Request();
+        var response = await _mediator.Send(request, cancellationToken);
+
+        return Ok(response.Items);
+    }
 }

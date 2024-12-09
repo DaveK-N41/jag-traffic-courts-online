@@ -7,74 +7,46 @@ using X.PagedList;
 
 namespace TrafficCourts.Staff.Service.Features.CourtFiles.Summaries;
 
-public class Request : IRequest<Response>
-{
-    public bool? appearances { get; set; }
-    public bool? notice_of_hearing_yn { get; set; }
-    public bool? multiple_officers_yn { get; set; }
-    public bool? electronic_ticket_yn { get; set; }
-
-    public string? time_zone { get; set; }
-    public string? submitted_from { get; set; }
-    public string? submitted_thru { get; set; }
-
-    public string? ticket_number { get; set; }
-    public string? surname { get; set; }
-
-    public string? jj_assigned_to { get; set; }
-    public string? dispute_status_codes { get; set; }
-    public string? appearance_courthouse_ids { get; set; }
-    public string? to_be_heard_at_courthouse_ids { get; set; }
-
-    public int? page_number { get; set; }
-    public int? page_size { get; set; }
-
-    public string? sort_by { get; set; }
-}
-
-public class Response
-{
-    public PagedDisputeCaseFileSummaryCollection Data { get; set; }
-}
-
-public class PagedDisputeCaseFileSummaryCollection
-{
-    public PagedDisputeCaseFileSummaryCollection()
-    {
-    }
-    public PagedDisputeCaseFileSummaryCollection(IEnumerable<DisputeCaseFileSummary> items, int pageNumber, int pageSize, int totalRows)
-    {
-        Items = items;
-        PageNumber = pageNumber;
-        PageSize = pageSize;
-        TotalRows = totalRows;
-        TotalPages = (int)Math.Ceiling((double)totalRows / pageSize);
-    }
-
-    public IEnumerable<DisputeCaseFileSummary> Items { get; set; }
-    public int PageNumber { get; set; }
-    public int PageSize { get; set; }
-    public int TotalPages { get; set; }
-    public int TotalRows { get; set; }
-
-}
-
 
 public class Handler : IRequestHandler<Request, Response>
 {
     private readonly IDisputeCaseFileSummaryRepository _repository;
+    private readonly Serilog.ILogger _logger;
 
-    public Handler(IDisputeCaseFileSummaryRepository repository)
+    public Handler(IDisputeCaseFileSummaryRepository repository, Serilog.ILogger logger)
     {
-        _repository = repository;
+        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
     {
-        var parameters = GetParameters(request);
+        try
+        {
+            // todo: add validation on the request
+            var parameters = GetParameters(request);
 
-        var pagedCollection = await _repository.GetListAsync(parameters, cancellationToken);
+            var pagedCollection = await _repository.GetListAsync(parameters, cancellationToken);
 
+            var response = CreateResponse(pagedCollection);
+
+            return response;
+        }
+        catch (Exception exception)
+        {
+            // generate an error id that we log and return to the client
+            string errorId = Guid.NewGuid().ToString("n");
+
+            _logger
+                .ForContext("ErrorId", errorId)
+                .Error(exception, "Error fetching data from ORDS");
+
+            return new Response(errorId);
+        }
+    }
+
+    private Response CreateResponse(OrdsDataService.OrdsDataServicePagedCollectionResponse<OrdsDisputeCaseFileSummary> pagedCollection)
+    {
         if (pagedCollection.Rows is not null)
         {
             var items = pagedCollection.Rows.Select(Map);
@@ -87,10 +59,30 @@ public class Handler : IRequestHandler<Request, Response>
             int totalPages = (int)Math.Ceiling((double)totalRows / pageSize);
 
             var pagedList = new PagedDisputeCaseFileSummaryCollection(items, pageNumber, pageSize, pagedCollection.TotalRows);
-            return new Response { Data = pagedList };
+            return new Response(pagedList);
         }
 
-        return new Response(); // no data - todo
+        // generate an error id that we log and return to the client
+        string errorId = Guid.NewGuid().ToString("n");
+
+        var error = pagedCollection.Errors?.FirstOrDefault();
+        var logger = _logger.ForContext("ErrorId", errorId);
+
+        if (error is not null)
+        {
+            logger
+                .ForContext("ErrorCode", error.ErrorCode)
+                .ForContext("ErrorMessage", error.ErrorMessage)
+                .ForContext("ErrorStack", error.ErrorStack)
+                .Error("Error fetching data from ORDS");
+        }
+        else
+        {
+            logger
+                .Warning("No data returned from ORDS, no error details are available");
+        }
+
+        return new Response(errorId);
     }
 
     private Dictionary<string, string> GetParameters(Request request)
@@ -144,7 +136,10 @@ public class Handler : IRequestHandler<Request, Response>
 
     private void AddWhere(Dictionary<string, string> parameters, Request request)
     {
-        AddDateSubmittedFilter(parameters, request);
+        AddUtcDateRangeFilter(parameters, "submitted_dt", request.time_zone, request.submitted_from, request.submitted_thru);
+        AddUtcDateRangeFilter(parameters, "jj_decision_dt", request.time_zone, request.jj_decision_dt_from, request.jj_decision_dt_thru);
+
+        AddDateRangeFilter(parameters, "appr_tm", request.appearance_dt_from, request.appearance_dt_thru);
 
         if (request.ticket_number is not null) parameters.Add("ticket_number_txt_eq", request.ticket_number);
         if (request.surname is not null) parameters.Add("prof_surname_nm_eq", request.surname);
@@ -152,39 +147,62 @@ public class Handler : IRequestHandler<Request, Response>
 
         if (request.dispute_status_codes is not null) parameters.Add("dispute_status_type_cd_in", request.dispute_status_codes);
         if (request.to_be_heard_at_courthouse_ids is not null) parameters.Add("to_be_heard_at_agen_id_in", request.to_be_heard_at_courthouse_ids);
+        if (request.hearing_type_cd is not null) parameters.Add("hearing_type_cd_eq", request.hearing_type_cd);
 
         if (request.appearance_courthouse_ids is not null && request.appearances is true)
         {
             parameters.Add("appr_ctrm_agen_id_in", request.appearance_courthouse_ids);
         }
-
     }
 
-    private void AddDateSubmittedFilter(Dictionary<string, string> parameters, Request request)
+    private void AddDateRangeFilter(Dictionary<string, string> parameters, string field, string? from, string? thru)
     {
-        if (request.submitted_from is null && request.submitted_thru is null)
+        if (from is null && thru is null)
         {
             return;
         }
 
-        var timeZone = request.time_zone ?? "America/Vancouver";
+        if (from is not null)
+        {
+            DateTime date = DateTime.ParseExact(from, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+            parameters.Add($"{field}_ge", date.ToString("yyyy-MM-dd"));
+        }
+
+        if (thru is not null)
+        {
+            // bump the date by one and search for less than the next day
+            DateTime date = DateTime.ParseExact(thru, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+            date = date.AddDays(1);
+            parameters.Add($"{field}_lt", date.ToString("yyyy-MM-dd"));
+        }
+
+    }
+
+    private void AddUtcDateRangeFilter(Dictionary<string, string> parameters, string field, string? timeZone, string? from, string? thru)
+    {
+        if (from is null && thru is null)
+        {
+            return;
+        }
+
+        timeZone = timeZone ?? "America/Vancouver";
         TimeZoneInfo tz = TimeZoneInfo.FindSystemTimeZoneById(timeZone);
 
         // convert the from/thru to UTC
-        if (request.submitted_from is not null)
+        if (from is not null)
         {
-            DateTime date = DateTime.ParseExact(request.submitted_from, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+            DateTime date = DateTime.ParseExact(from, "yyyy-MM-dd", CultureInfo.InvariantCulture);
             date = TimeZoneInfo.ConvertTimeToUtc(date, tz);
-            parameters.Add("submitted_dt_ge", date.ToString("yyyy-MM-ddTHH:mm:ssZ"));
+            parameters.Add($"{field}_ge", date.ToString("yyyy-MM-ddTHH:mm:ssZ"));
         }
 
-        if (request.submitted_thru is not null)
+        if (thru is not null)
         {
             // bump the date by one and search for less than the next day
-            DateTime date = DateTime.ParseExact(request.submitted_thru, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+            DateTime date = DateTime.ParseExact(thru, "yyyy-MM-dd", CultureInfo.InvariantCulture);
             date = date.AddDays(1);
             date = TimeZoneInfo.ConvertTimeToUtc(date, tz);
-            parameters.Add("submitted_dt_lt", date.ToString("yyyy-MM-ddTHH:mm:ssZ"));
+            parameters.Add($"{field}_lt", date.ToString("yyyy-MM-ddTHH:mm:ssZ"));
         }
     }
 
@@ -197,6 +215,16 @@ public class Handler : IRequestHandler<Request, Response>
 
         StringBuilder buffer = new StringBuilder();
         string[] clientOrder = request.sort_by.Split(',');
+
+        void Append(string direction, string target)
+        {
+            if (buffer.Length > 0)
+            {
+                buffer.Append(',');
+            }
+            buffer.Append(direction);
+            buffer.Append(target);
+        }
 
         for (int i = 0; i < clientOrder.Length; i++)
         {
@@ -218,9 +246,9 @@ public class Handler : IRequestHandler<Request, Response>
                 "ticketNumber" => "ticket_number_txt",
                 "violationDate" => "violation_dt",
                 "toBeHeardAtCourthouseName" => "to_be_heard_at_agen_nm",
-                "disputantSurname" => "prof_surname_nm",
+                "surname" => "prof_surname_nm",
                 "disputantGivenName1" => "prof_given_1_nm",
-                "disputeStatusDescription" => "dispute_status_type_dsc",
+                "status" => "dispute_status_type_dsc",
                 "policeDetachment" => "detachment_agency_nm",
                 "accidentYn" => "accident_yn",
                 "noticeOfHearingYn" => "notice_of_hearing_yn",
@@ -235,11 +263,28 @@ public class Handler : IRequestHandler<Request, Response>
                 _ => null
             };
 
+            // special handling for appearance duration as it is two fields in the database
+            if (target is null && item == "appearanceDuration")
+            {
+                if (request.appearances is true)
+                {
+                    Append(direction, "appr_estimated_duration_hh");
+                    Append(direction, "appr_estimated_duration_mi");
+                }
+                else
+                {
+                    _logger.Warning("{IncludeItem} was not included, sorting on {Column} will be ingored", "appearances", item);
+                }
+
+                continue;
+            }
+
             // did we try to sort on columns not included?
             if (target == "appr_ctrm_agen_nm" || target == "appr_ctrm_room_cd" || target == "appr_tm")
             {
                 if (request.appearances is not true)
                 {
+                    _logger.Warning("{IncludeItem} was not included, sorting on {Column} will be ingored", "appearances", item);
                     continue;
                 }
             }
@@ -248,6 +293,7 @@ public class Handler : IRequestHandler<Request, Response>
             {
                 if (request.notice_of_hearing_yn is not true)
                 {
+                    _logger.Warning("{IncludeItem} was not included, sorting on {Column} will be ingored", "notice_of_hearing_yn", item);
                     continue;
                 }
             }
@@ -256,6 +302,7 @@ public class Handler : IRequestHandler<Request, Response>
             {
                 if (request.multiple_officers_yn is not true)
                 {
+                    _logger.Warning("{IncludeItem} was not included, sorting on {Column} will be ingored", "multiple_officers_yn", item);
                     continue;
                 }
             }
@@ -264,18 +311,20 @@ public class Handler : IRequestHandler<Request, Response>
             {
                 if (request.electronic_ticket_yn is not true)
                 {
+                    _logger.Warning("{IncludeItem} was not included, sorting on {Column} will be ingored", "electronic_ticket_yn", item);
                     continue;
                 }
             }
 
-            if (buffer.Length > 0)
+            if (target is not null)
             {
-                buffer.Append(",");
+                Append(direction, target);
             }
-            buffer.Append(direction);
-            buffer.Append(target);
+            else
+            {
+                _logger.Warning("Unknown sort column {Column}", item);
+            }
         }
-
 
         parameters.Add("order", buffer.ToString());
     }
@@ -285,12 +334,20 @@ public class Handler : IRequestHandler<Request, Response>
         if (request.page_size is not null)
         {
             parameters.Add("fetch_rows", request.page_size.Value.ToString());
+
+            if (request.page_size.Value == -1)
+            {
+                // caller wants all the rows
+                parameters.Add("offset_rows", "0");
+                return;
+            }
         }
 
         int pageSize = request.page_size ?? 25;
 
         if (request.page_number is not null)
         {
+            
             // compute the offset_rows
             int offset = (request.page_number.Value - 1) * pageSize;
             parameters.Add("offset_rows", offset.ToString());
@@ -306,7 +363,7 @@ public class Handler : IRequestHandler<Request, Response>
             SubmittedTs = dispute.submitted_dt,
             JjDecisionDate = dispute.jj_decision_dt,
             SignatoryName = dispute.signed_by,
-            HearingType = ToJJDisputeHearingType(dispute.hearing_type_cd),
+            HearingType = dispute.hearing_type_cd,
             TicketNumber = dispute.ticket_number_txt,
             ViolationDate = dispute.violation_dt,
             ViolationDateCount = dispute.unique_violation_dt_count,
@@ -316,9 +373,13 @@ public class Handler : IRequestHandler<Request, Response>
             DisputantGivenName1 = dispute.prof_given_1_nm,
             DisputantGivenName2 = dispute.prof_given_2_nm,
             DisputantGivenName3 = dispute.prof_given_3_nm,
-            Status = ToJJDisputeStatus(dispute.dispute_status_type_cd),
-            DisputeStatusCd = dispute.dispute_status_type_cd,
-            DisputeStatusDescription = dispute.dispute_status_type_dsc,
+            FineReductionReason = dispute.fine_reduction_reason_txt,
+            TimeToPayReason = dispute.time_to_pay_reason_txt,
+            DisputeStatus = new DisputeCaseFileStatus
+            {
+                Code = dispute.dispute_status_type_cd,
+                Description = dispute.dispute_status_type_dsc
+            },
             PoliceDetachmentId = dispute.detachment_agen_id,
             PoliceDetachment = dispute.detachment_agency_nm,
             AccidentYn = ToYesNo(dispute.accident_yn),
@@ -331,7 +392,8 @@ public class Handler : IRequestHandler<Request, Response>
             AppearanceCourthouseId = dispute.appr_ctrm_agen_id,
             AppearanceCourthouseName = dispute.appr_ctrm_agen_nm,
             AppearanceRoomCode = dispute.appr_ctrm_room_cd,
-            AppearanceTs = dispute.appr_tm
+            AppearanceTs = dispute.appr_tm,
+            AppearanceDuration = (dispute.appr_estimated_duration_hh ?? 0) * 60 + (dispute.appr_estimated_duration_mi ?? 0)
         };
 
         return summary;
@@ -364,18 +426,6 @@ public class Handler : IRequestHandler<Request, Response>
             "CNLD" => JJDisputeStatus.CONCLUDED,
             "CANC" => JJDisputeStatus.CANCELLED,
             _ => JJDisputeStatus.UNKNOWN
-        };
-    }
-
-    private static JJDisputeHearingType? ToJJDisputeHearingType(string? value)
-    {
-        return value switch
-        {
-            "C" => JJDisputeHearingType.COURT_APPEARANCE,
-            "W" => JJDisputeHearingType.WRITTEN_REASONS,
-            "U" => JJDisputeHearingType.UNKNOWN,
-            null => null,
-            _ => JJDisputeHearingType.UNKNOWN
         };
     }
 }

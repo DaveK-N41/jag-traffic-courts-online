@@ -1,90 +1,122 @@
-import { Component, OnInit, ViewChild, AfterViewInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, ViewChild, Output, EventEmitter } from '@angular/core';
 import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
-import { MatSort } from '@angular/material/sort';
+import { MatSort, Sort } from '@angular/material/sort';
 import { LookupsService } from 'app/services/lookups.service';
-import { JJDisputeService, JJDispute } from 'app/services/jj-dispute.service';
+import { JJDisputeService } from 'app/services/jj-dispute.service';
 import { LoggerService } from '@core/services/logger.service';
-import { filter, Observable } from 'rxjs';
 import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
-import { JJDisputeAccidentYn, JJDisputeHearingType } from 'app/api';
+import { DisputeCaseFileSummary, PagedDisputeCaseFileSummaryCollection, SortDirection, YesNo, Agency } from 'app/api';
 import { AuthService, UserRepresentation } from 'app/services/auth.service';
-import { AppState } from 'app/store';
-import { Store } from '@ngrx/store';
+import { HearingType } from '@shared/consts/HearingType.model';
+import { DisputeStatus } from '@shared/consts/DisputeStatus.model';
 
 @Component({
   selector: 'app-jj-dispute-wr-assignments',
   templateUrl: './jj-dispute-wr-assignments.component.html',
   styleUrls: ['./jj-dispute-wr-assignments.component.scss'],
 })
-export class JJDisputeWRAssignmentsComponent implements OnInit, AfterViewInit {
-  @Output() jjDisputeInfo: EventEmitter<JJDispute> = new EventEmitter();
+export class JJDisputeWRAssignmentsComponent implements OnInit {
+  @Output() tcoDisputeInfo: EventEmitter<DisputeCaseFileSummary> = new EventEmitter();
   @ViewChild(MatSort) sort = new MatSort();
 
-  Accident = JJDisputeAccidentYn;
-  data$: Observable<JJDispute[]>;
-  data = [] as JJDispute[];
   currentTeam: string = "A";
+  courthouseTeamCounts: teamCounts[] = [];
   valueOfUnassigned: string = "";
   bulkjjAssignedTo: string = this.valueOfUnassigned;
-  HearingType = JJDisputeHearingType;
-  teamCounts: teamCounts[] = [];
   jjList: UserRepresentation[];
-  dataSource: MatTableDataSource<JJDispute> = new MatTableDataSource();
+  tcoDisputes: DisputeCaseFileSummaryTeam[] = [];
+  tcoDisputesCollection: PagedDisputeCaseFileSummaryCollection = {};
+  dataSource = new MatTableDataSource(this.tcoDisputes);
   displayedColumns: string[] = [
     "assignedIcon",
-    "jjAssignedToName",
+    "jjAssignedTo",
     "bulkAssign",
     "ticketNumber",
     "submittedTs",
-    "occamDisputantSurnameNm",
-    "courthouseLocation",
+    "surname",
+    "toBeHeardAtCourthouseName",
     "policeDetachment",
     "timeToPayReason",
     "accidentYn",
   ];
+  sortBy: string = "submittedTs";
+  sortDirection: SortDirection = SortDirection.Desc;
+  yesNo = YesNo;
+  courthouseTeamIds = {};
 
   constructor(
     private authService: AuthService,
     private jjDisputeService: JJDisputeService,
     private logger: LoggerService,
-    private store: Store<AppState>,
     private lookupsService: LookupsService
   ) {
     this.authService.jjList$.subscribe(result => {
       this.jjList = result;
     });
+  }
 
-    this.data$ = this.store.select(state => state.jjDispute.data).pipe(filter(i => !!i));
-    this.data$.subscribe(jjDisputes => {
-      this.data = jjDisputes.map(jjDispute => { return { ...jjDispute } });
-      this.getAll(this.currentTeam);
-    })
+  initializeCourthouseTeamCounts(): void {
+    this.courthouseTeamCounts = [
+      { team: 'A', assignedCount: 0, unassignedCount: 0 },
+      { team: 'B', assignedCount: 0, unassignedCount: 0 },
+      { team: 'C', assignedCount: 0, unassignedCount: 0 },
+      { team: 'D', assignedCount: 0, unassignedCount: 0 }
+    ];
+  }
+
+  getCourthouseAgencyIds() {
+    this.lookupsService.getCourthouseAgencies().subscribe((agencies: Agency[]) => {
+      this.courthouseTeamCounts.forEach(courthouseTeamCount => {
+        let matchingTeams = this.lookupsService.courthouseTeams.filter(x => x.__team === courthouseTeamCount.team);
+        let ids = matchingTeams.flatMap(team => 
+          agencies.filter(agency => agency.name.toLowerCase() === team.name.toLowerCase()).map(agency => agency.id));
+        this.courthouseTeamIds[courthouseTeamCount.team] = ids;
+      });
+      this.getTCODisputes();
+    });
   }
 
   ngOnInit(): void {
-    this.getAll(this.currentTeam);
+    this.initializeCourthouseTeamCounts();
+    this.getCourthouseAgencyIds();    
   }
 
-  ngAfterViewInit() {
-    this.dataSource.sort = this.sort;
-    this.dataSource.sort.active = 'ticketNumber';
-
-    // custom sorting on columns
-    this.dataSource.sortingDataAccessor = (data: any, sortHeaderId: string): string => {
-      if (sortHeaderId === 'timeToPayReason'){
-        return this.getType(data);
-      } else if (typeof data[sortHeaderId] === 'string') {
-        return data[sortHeaderId].toLocaleLowerCase();
-      }    
-      return data[sortHeaderId];
+  getTCODisputes() {
+    this.logger.log('JJDisputeWRAssignmentsComponent::getTCODisputes');
+    const params = {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      disputeStatusCodes: [DisputeStatus.New, DisputeStatus.Review, DisputeStatus.InProgress, 
+        DisputeStatus.HearingScheduled].join(","),
+      hearingTypeCd: HearingType.WrittenReasons,
+      toBeHeardAtCourthouseIds: this.courthouseTeamIds[this.currentTeam] ? 
+        this.courthouseTeamIds[this.currentTeam].join(",") : "",
+      sortBy: this.sortDirection === SortDirection.Asc ? this.sortBy : "-" + this.sortBy,
+      pageNumber: 1,
+      pageSize: -1
     };
+    this.jjDisputeService.getTCODisputes(params).subscribe((response) => {
+      this.tcoDisputes = [];
+      this.logger.log('JJDisputeWRAssignmentsComponent::getTCODisputes response');
+      this.tcoDisputesCollection = response;
+      this.tcoDisputes = response.items.map(item => ({
+        ...item,
+        bulkAssign: false
+      })) as DisputeCaseFileSummaryTeam[];
+      this.dataSource.data = this.tcoDisputes;
+      if (this.sortBy === 'timeToPayReason') {
+        this.sortByType();
+      }
+      let courthouseTeamCount = this.courthouseTeamCounts.find(x => x.team === this.currentTeam);
+      courthouseTeamCount.assignedCount = this.tcoDisputes.filter(x => x.jjAssignedTo).length;
+      courthouseTeamCount.unassignedCount = this.tcoDisputes.filter(x => !x.jjAssignedTo).length;
+    });
   }
 
-  backWorkbench(element) {
-    this.jjDisputeInfo.emit(element);
+  backWorkbench(element: DisputeCaseFileSummary) {
+    this.tcoDisputeInfo.emit(element);
   }
 
-  getType(element: JJDispute): string {
+  getType(element: DisputeCaseFileSummary): string {
     if (element.timeToPayReason && element.fineReductionReason)
       return "Time to pay/Fine";
     else if (element.timeToPayReason)
@@ -92,60 +124,12 @@ export class JJDisputeWRAssignmentsComponent implements OnInit, AfterViewInit {
     else return "Fine";
   }
 
-  filterByTeam(team: string) {
-    let teamCourthouses = this.lookupsService.courthouseTeams.filter(x => x.__team === team);
-    // let team D have all courthouse locations not found in list so these are not lost
-    this.dataSource.data = this.data.filter(x =>
-    ((teamCourthouses.filter(y => y.id === x.courtAgenId).length > 0) // court agency id found in team ist of courthouses
-      || (team === 'D' && this.lookupsService.courthouseTeams.filter(y => y.id === x.courtAgenId).length <= 0))); // or team D and court agency id not found in complete list of courthouses
+  filterByTeam(team: string) {    
     this.currentTeam = team;
+    this.getTCODisputes();
   }
 
-  getCurrentTeamCounts(): teamCounts {
-    return this.teamCounts.filter(x => x.team == this.currentTeam)[0];
-  }
-
-  getTeamCount(team: string): teamCounts {
-    let teamCourthouses = this.lookupsService.courthouseTeams.filter(x => x.__team === team);
-    let teamDisputes = this.data.filter(x =>
-    ((teamCourthouses.filter(y => y.id === x.courtAgenId).length > 0) // court agency id found in team ist of courthouses
-      || (team === 'A' && this.lookupsService.courthouseTeams.filter(y => y.id === x.courtAgenId).length <= 0))); // or team A and court agency id not found in complete list of courthouses
-    let teamCounts = { team: team, assignedCount: 0, unassignedCount: 0 } as teamCounts;
-    if (teamDisputes) {
-      let unassignedTeamCounts = teamDisputes.filter(x => !x.jjAssignedTo || x.jjAssignedTo === this.valueOfUnassigned);
-      if (unassignedTeamCounts.length > 0) teamCounts.unassignedCount = unassignedTeamCounts.length;
-      let assignedTeamCounts = teamDisputes.filter(x => x.jjAssignedTo && x.jjAssignedTo !== this.valueOfUnassigned);
-      if (assignedTeamCounts.length > 0) teamCounts.assignedCount = assignedTeamCounts.length;
-      return teamCounts;
-    }
-    else return teamCounts;
-  }
-
-  getAll(team: string): void {
-    // filter jj disputes only show new, review, in_progress
-    this.data = this.data.filter(x => (this.jjDisputeService.jjDisputeStatusEditable.indexOf(x.status) >= 0) && x.hearingType === this.HearingType.WrittenReasons);
-    this.data.forEach(jjDispute => {
-      if (!jjDispute.jjAssignedTo) {
-        jjDispute.jjAssignedTo = this.valueOfUnassigned;
-      }
-    });
-
-    this.dataSource.data = this.data;
-    this.resetCounts();
-    this.filterByTeam(team); // initialize
-  }
-
-  resetCounts() {
-    this.teamCounts = [];
-    this.teamCounts.push(this.getTeamCount("A"));
-    this.teamCounts.push(this.getTeamCount("B"));
-    this.teamCounts.push(this.getTeamCount("C"));
-    this.teamCounts.push(this.getTeamCount("D"));
-
-    this.filterByTeam(this.currentTeam);
-  }
-
-  onAssign(element: JJDispute): void {
+  onAssign(element: DisputeCaseFileSummary): void {
     this.bulkUpdateJJAssignedTo([element.ticketNumber], element.jjAssignedTo);
   }
 
@@ -158,13 +142,13 @@ export class JJDisputeWRAssignmentsComponent implements OnInit, AfterViewInit {
   }
 
   bulkUpdateJJAssignedTo(ticketNumbers: string[], assignTo: string) {
-    assignTo = !assignTo || assignTo === this.valueOfUnassigned ? null : assignTo;
+    assignTo = assignTo ? assignTo : null;
     this.jjDisputeService.apiJjAssignPut(ticketNumbers, assignTo).subscribe((response) => {
       this.logger.info(
         'JJDisputeWRAssignmentsComponent::onBulkAssign response',
         response
       );
-      this.getAll(this.currentTeam);
+      this.getTCODisputes();
       this.bulkjjAssignedTo = this.valueOfUnassigned;
     });
   }
@@ -177,10 +161,49 @@ export class JJDisputeWRAssignmentsComponent implements OnInit, AfterViewInit {
 
   onBulkAssign() {
     let ticketNumbers = [];
-    this.dataSource.data.forEach(jjDispute => {
-      if (jjDispute.bulkAssign) ticketNumbers.push(jjDispute.ticketNumber);
+    this.dataSource.data.forEach(tcoDispute => {
+      if (tcoDispute.bulkAssign) ticketNumbers.push(tcoDispute.ticketNumber);
     });
     this.bulkUpdateJJAssignedTo(ticketNumbers, this.bulkjjAssignedTo);
+  }
+
+  getName(jjAssignedTo: string) {
+    if (this.jjList) {
+      const jj = this.jjList.find(j => j.idir === jjAssignedTo);
+      return jj ? jj.jjDisplayName : '';
+    }
+  }
+
+  sortData(sort: Sort){
+    this.sortBy = sort.active;
+    this.sortDirection = sort.direction ? sort.direction as SortDirection : SortDirection.Desc;
+    if (this.sortBy === 'timeToPayReason') {
+      this.sortByType();
+    } else {
+      this.getTCODisputes();
+    }
+  }
+
+  getAssignedCount() {
+    return this.courthouseTeamCounts.find(x => x.team === this.currentTeam).assignedCount;
+  }
+
+  getUnassignedCount() {
+    return this.courthouseTeamCounts.find(x => x.team === this.currentTeam).unassignedCount;
+  }
+
+  sortByType() {
+    this.dataSource.data = this.tcoDisputes.sort((a, b) => {
+      const typeA = this.getType(a);
+      const typeB = this.getType(b);
+      if (typeA.toLowerCase() < typeB.toLowerCase()) {
+        return this.sortDirection === 'asc' ? -1 : 1;
+      } else if (typeA.toLowerCase() > typeB.toLowerCase()) {
+        return this.sortDirection === 'asc' ? 1 : -1;
+      } else {
+        return 0;
+      }
+    });
   }
 }
 
@@ -188,4 +211,8 @@ export interface teamCounts {
   team: string;
   assignedCount: number;
   unassignedCount: number;
+}
+
+export interface DisputeCaseFileSummaryTeam extends DisputeCaseFileSummary {
+  bulkAssign: boolean;
 }

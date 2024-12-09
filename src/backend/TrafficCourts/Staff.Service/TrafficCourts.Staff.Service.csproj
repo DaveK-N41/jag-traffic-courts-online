@@ -86,7 +86,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Features\Lookups\DisputeCaseFileDisputeStatusTypes\" />
 	  <Folder Include="Features\Lookups\DisputeCaseFileAuditLogEntryTypes\" />
 	  <Folder Include="Features\Lookups\DisputeAuditLogEntryTypes\" />
 	  <Folder Include="Features\Lookups\DisputeStatusTypes\" />

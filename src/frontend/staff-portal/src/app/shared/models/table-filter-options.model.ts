@@ -1,4 +1,4 @@
-import { DisputeStatus } from "app/api";
+import { Agency, DisputeStatus } from "app/api";
 
 export class TableFilter {
   dateSubmittedFrom?: string;
@@ -7,9 +7,9 @@ export class TableFilter {
   decisionDateTo?: string;
   ticketNumber?: string;
   disputantSurname?: string;
-  occamDisputantName?: string;
+  surname?: string;
   team?: string;
-  courthouseLocation?: string;
+  courthouseLocation?: Agency[];
   status?: DisputeStatus | '';
 }
 export type TableFilterKeys = keyof TableFilter;

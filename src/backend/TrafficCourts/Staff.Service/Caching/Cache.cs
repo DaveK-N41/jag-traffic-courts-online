@@ -58,6 +58,8 @@ public class Cache
         public static string Languages(int version = 1) => $"staff-api:v{version}:languages";
         public static string Provinces(int version = 1) => $"staff-api:v{version}:provinces";
 
+        public static string DisputeCaseFileStatusTypes(int version = 1) => $"staff-api:v{version}:tco:dispute-status_types";
+
         /// <summary>
         /// Stores the list of statutues
         /// </summary>

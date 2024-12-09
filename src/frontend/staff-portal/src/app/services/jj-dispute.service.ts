@@ -1,12 +1,12 @@
 import { ConfigService } from '@config/config.service';
 import { LoggerService } from '@core/services/logger.service';
 import { ToastService } from '@core/services/toast.service';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { HttpClient, HttpContext, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { EventEmitter, Injectable } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { JJService, JJDispute as JJDisputeBase, JJDisputeStatus, JJDisputeRemark, DocumentType, JJDisputeCourtAppearanceRoP, DcfTemplateType } from 'app/api';
+import { JJService, JJDispute as JJDisputeBase, JJDisputeStatus, JJDisputeRemark, DocumentType, JJDisputeCourtAppearanceRoP, DcfTemplateType, PagedDisputeCaseFileSummaryCollection } from 'app/api';
 import { AuthService } from './auth.service';
 import { cloneDeep } from "lodash";
 import { Store } from '@ngrx/store';
@@ -39,23 +39,54 @@ export class JJDisputeService {
   ) {
   }
 
+  // TODO: Need to clean up store dispatches once the new v2 urls in place
   /**
      * Get the JJ disputes from RSI
      *
      * @param none
      */
   public getJJDisputes(): Observable<JJDispute[]> {
-    return this.jjApiService.apiJjDisputesGet()
+    // return this.jjApiService.apiJjDisputesGet()
+    //   .pipe(
+    //     map((response: JJDispute[]) => {
+    //       this.logger.info('jj-DisputeService::getJJDisputes', response);
+    //       response.map(jJDispute => this.toDisplay(jJDispute));
+    //       return response;
+    //     }),
+    //     catchError((error: any) => {
+    //       this.toastService.openErrorToast(this.configService.dispute_error);
+    //       this.logger.error(
+    //         'jj-DisputeService::getJJDisputes error has occurred: ',
+    //         error
+    //       );
+    //       throw error;
+    //     })
+    //   );
+    return of([]);
+  }
+
+  public getTCODisputes(params: { appearances?: boolean, noticeOfHearingYn?: boolean, multipleOfficersYn?: boolean, 
+    electronicTicketYn?: boolean, timeZone?: string, submittedFrom?: string, submittedThru?: string, 
+    ticketNumber?: string, surname?: string, jjAssignedTo?: string, jjDecisionDtFrom?: string, 
+    jjDecisionDtThru?: string, disputeStatusCodes?: string, appearanceCourthouseIds?: string,
+    appearanceDtFrom?: string, appearanceDtThru?: string, toBeHeardAtCourthouseIds?: string, 
+    hearingTypeCd?: string, sortBy?: string, pageNumber?: number, pageSize?: number }): 
+    Observable<PagedDisputeCaseFileSummaryCollection> {
+    return this.jjApiService.apiJjDisputesSearchGet(params.appearances, params.noticeOfHearingYn, 
+      params.multipleOfficersYn, params.electronicTicketYn, params.timeZone, params.submittedFrom, 
+      params.submittedThru, params.ticketNumber, params.surname, params.jjAssignedTo, params.jjDecisionDtFrom,
+      params.jjDecisionDtThru, params.disputeStatusCodes, params.appearanceCourthouseIds, 
+      params.appearanceDtFrom, params.appearanceDtThru, params.toBeHeardAtCourthouseIds, 
+      params.hearingTypeCd, params.sortBy, params.pageNumber, params.pageSize)
       .pipe(
-        map((response: JJDispute[]) => {
-          this.logger.info('jj-DisputeService::getJJDisputes', response);
-          response.map(jJDispute => this.toDisplay(jJDispute));
+        map((response: PagedDisputeCaseFileSummaryCollection) => {
+          this.logger.info('jj-DisputeService::getTcoDisputes', response);
           return response;
         }),
         catchError((error: any) => {
           this.toastService.openErrorToast(this.configService.dispute_error);
           this.logger.error(
-            'jj-DisputeService::getJJDisputes error has occurred: ',
+            'jj-DisputeService::getTcoDisputes error has occurred: ',
             error
           );
           throw error;

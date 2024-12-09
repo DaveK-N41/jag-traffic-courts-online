@@ -74,4 +74,32 @@ th {
   .mat-sort-header-arrow {
     color: #757575;
   }
+
+  .status {
+    button {
+      color: white;
+      width: 9.375rem;
+      border-radius: 0.625rem;
+    }
+
+    .bg-color-new, .bg-color-scheduled {
+      background-color:#8fd08f;
+    }
+
+    .bg-color-in-progress, .bg-color-require-court-hearing {
+      background-color:#fcba19;
+    }
+
+    .bg-color-review {
+      background-color:#f63f3f;
+    }
+
+    .bg-color-confirmed {
+      background-color:#1a5a96;
+    }
+
+    .bg-color-concluded {
+      background-color:#c5c5c5;
+    }
+  }
 }

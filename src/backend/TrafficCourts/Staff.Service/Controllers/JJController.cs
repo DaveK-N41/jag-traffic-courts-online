@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Security.Claims;
@@ -93,9 +94,14 @@ public partial class JJController : StaffControllerBase
     /// <param name="ticket_number"></param>
     /// <param name="surname">The case insenstive surname to search for.</param>
     /// <param name="jj_assigned_to">The JJ assigned user</param>
+    /// <param name="jj_decision_dt_from">The jj decision date where greater or equal to this date. Format must be YYYY-MM-DD.</param>
+    /// <param name="jj_decision_dt_thru">The jj decision date where less or equal to this date. Format must be YYYY-MM-DD.</param>
     /// <param name="dispute_status_codes">The comma separate list of status codes</param>
     /// <param name="appearance_courthouse_ids">The comma separate list of agency ids</param>
+    /// <param name="appearance_dt_from">The appearance date from. Format must be YYYY-MM-DD.</param>
+    /// <param name="appearance_dt_thru">The appearance date thru. Format must be YYYY-MM-DD.</param>
     /// <param name="to_be_heard_at_courthouse_ids">The comma separate list of agency ids</param>
+    /// <param name="hearing_type_cd">The hearing type code to search.</param>
     /// <param name="page_number">The page number to fetch. Starts at 1.</param>
     /// <param name="page_size">The page size to use. If not specified, defaults to 25</param>
     /// <param name="sort_by">The list of columns to sort the result by. To sort descending, add a '-' before the column name.</param>
@@ -121,9 +127,14 @@ public partial class JJController : StaffControllerBase
         string? ticket_number,
         string? surname,
         string? jj_assigned_to,
+        string? jj_decision_dt_from,
+        string? jj_decision_dt_thru,
         string? dispute_status_codes,
         string? appearance_courthouse_ids,
+        string? appearance_dt_from,
+        string? appearance_dt_thru,
         string? to_be_heard_at_courthouse_ids,
+        string? hearing_type_cd,
         string? sort_by,
         int? page_number,
         int? page_size,
@@ -141,9 +152,14 @@ public partial class JJController : StaffControllerBase
             ticket_number  = ticket_number,
             surname = surname,
             jj_assigned_to = jj_assigned_to,
+            jj_decision_dt_from = jj_decision_dt_from,
+            jj_decision_dt_thru = jj_decision_dt_thru,
             dispute_status_codes = dispute_status_codes,
             appearance_courthouse_ids = appearance_courthouse_ids,
+            appearance_dt_from = appearance_dt_from,
+            appearance_dt_thru = appearance_dt_thru,
             to_be_heard_at_courthouse_ids = to_be_heard_at_courthouse_ids,
+            hearing_type_cd = hearing_type_cd,
             sort_by = sort_by,
             page_number = page_number,
             page_size = page_size
@@ -152,7 +168,13 @@ public partial class JJController : StaffControllerBase
         try
         {
             var response = await _mediator.Send(request, cancellationToken);
-            return Ok(response.Data);
+
+            if (response.Data is not null)
+            {
+                return Ok(response.Data);
+            }
+
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error fetching disputes", errorId = response.ErrorId });
         }
         catch (Exception exception)
         {

@@ -1,7 +1,7 @@
 import { ConfigService } from '@config/config.service';
 import { LoggerService } from '@core/services/logger.service';
 import { ToastService } from '@core/services/toast.service';
-import { Statute as StatuteBase, LookupService, Language, Agency, Province, Country } from 'app/api';
+import { Statute as StatuteBase, LookupService, Language, Agency, Province, Country, DisputeCaseFileStatus } from 'app/api';
 import { Observable, BehaviorSubject, forkJoin } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
@@ -35,6 +35,7 @@ export class LookupsService implements ILookupsService {
   private _courthouseAgencies: BehaviorSubject<Agency[]> = new BehaviorSubject<Agency[]>([]);;
   private _provinces: BehaviorSubject<Province[]> = new BehaviorSubject<Province[]>([]);;
   private _countries: BehaviorSubject<Country[]> = new BehaviorSubject<Country[]>([]);
+  private _disputeStatus: BehaviorSubject<DisputeCaseFileStatus[]> = new BehaviorSubject<DisputeCaseFileStatus[]>([]);
 
   constructor(
     private toastService: ToastService,
@@ -50,7 +51,8 @@ export class LookupsService implements ILookupsService {
       statutes: this.getStatutes(),
       languages: this.getLanguages(),
       provinces: this.getProvinces(),
-      countries: this.getCountries()
+      countries: this.getCountries(),
+      disputeStatus: this.getDisputeStatus(),
     };
     return forkJoin(observables).pipe(
       map(results => {
@@ -59,6 +61,7 @@ export class LookupsService implements ILookupsService {
         this._languages.next(results.languages);
         this._provinces.next(results.provinces);
         this._countries.next(results.countries);
+        this._disputeStatus.next(results.disputeStatus);
       }
       ));
   }
@@ -233,7 +236,7 @@ export class LookupsService implements ILookupsService {
       */
   public getCourthouseAgencies(): Observable<Agency[]> {
 
-    return this.lookupService.apiLookupAgenciesGet()
+    return this.lookupService.apiLookupAgenciesV2Get()
       .pipe(
         map((response: Agency[]) =>
           response ? response : []
@@ -272,6 +275,43 @@ export class LookupsService implements ILookupsService {
     let found = this.courthouseAgencies?.filter(x => x.id?.trim().toLowerCase() === id?.trim().toLowerCase()).shift();
     if (found) return found.name;
     else return id;
+  }
+
+  /**
+     * Get the dispute statuses.
+     *
+     * @param none
+     */
+  public getDisputeStatus(): Observable<DisputeCaseFileStatus[]> {
+
+    return this.lookupService.apiLookupDisputeCaseFileStatusesV2Get()
+      .pipe(
+        map((response: DisputeCaseFileStatus[]) =>
+          response ? response : []
+        ),
+        map((disputeStatus: DisputeCaseFileStatus[]) => {
+          return disputeStatus;
+        }),
+        tap((disputeStatus) =>
+          this.logger.info('LookupsService::getDisputeStatus', disputeStatus.length)
+        ),
+        catchError((error: any) => {
+          this.toastService.openErrorToast("Dispute status not loaded");
+          this.logger.error(
+            'LookupsService::getDisputeStatus error has occurred: ',
+            error
+          );
+          throw error;
+        })
+      );
+  }
+
+  public get disputeStatus$(): Observable<Language[]> {
+    return this._disputeStatus.asObservable();
+  }
+
+  public get disputeStatus(): Language[] {
+    return this._disputeStatus.value;
   }
 }
 

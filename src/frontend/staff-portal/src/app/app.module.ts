@@ -60,6 +60,7 @@ import { JjDisputeUpdatesComponent } from './components/jj-dispute-info/jj-dispu
 import { PagingComponent } from '@components/paging/paging.component';
 import { UploadComponent } from './components/staff-workbench/upload/upload.component';
 import { BsDatepickerConfig, BsDatepickerModule } from 'ngx-bootstrap/datepicker';
+import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 
 registerLocaleData(localeEn, 'en');
 registerLocaleData(localeFr, 'fr');
@@ -138,7 +139,8 @@ function initializeKeycloak(keycloak: KeycloakService): () => Promise<void> {
     }),
     StoreModule.forRoot(reducers),
     EffectsModule.forRoot([JJDisputeStore.Effects]),
-    BsDatepickerModule.forRoot()
+    BsDatepickerModule.forRoot(),
+    NgMultiSelectDropDownModule.forRoot()
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   exports: [NgBusyModule, TranslateModule],

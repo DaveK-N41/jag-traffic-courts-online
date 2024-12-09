@@ -1,14 +1,14 @@
-import { Component, OnInit, ViewChild, AfterViewInit, Output, EventEmitter, Input, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
 import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
-import { MatSort } from '@angular/material/sort';
-import { JJDisputeService, JJDispute } from 'app/services/jj-dispute.service';
-import { filter, Observable } from 'rxjs';
-import { JJDisputeStatus, JJDisputeHearingType, JJDisputeAccidentYn, JJDisputeMultipleOfficersYn } from 'app/api';
+import { MatSort, Sort } from '@angular/material/sort';
+import { JJDisputeService } from 'app/services/jj-dispute.service';
+import { SortDirection, YesNo, DisputeCaseFileSummary, PagedDisputeCaseFileSummaryCollection } from 'app/api';
 import { AuthService, UserRepresentation } from 'app/services/auth.service';
 import { FormControl } from '@angular/forms';
-import { Store } from '@ngrx/store';
-import { JJDisputeStore } from 'app/store';
 import { MatDatepicker } from '@angular/material/datepicker';
+import { DisputeStatus } from '@shared/consts/DisputeStatus.model';
+import { HearingType } from '@shared/consts/HearingType.model';
+import { LoggerService } from '@core/services/logger.service';
 
 @Component({
   selector: 'app-jj-dispute-hearing-inbox',
@@ -16,45 +16,46 @@ import { MatDatepicker } from '@angular/material/datepicker';
   styleUrls: ['./jj-dispute-hearing-inbox.component.scss'],
 })
 export class JJDisputeHearingInboxComponent implements OnInit, AfterViewInit {
-  @Output() jjDisputeInfo: EventEmitter<JJDispute> = new EventEmitter();
+  @Output() tcoDisputeInfo: EventEmitter<DisputeCaseFileSummary> = new EventEmitter();
   @ViewChild(MatSort) sort = new MatSort();
 
   @ViewChild('fauxPicker') private readonly fauxPicker: MatDatepicker<null>; // Temp fix for DatetimePicker styles
 
-  jjIDIR: string;
-  HearingType = JJDisputeHearingType;
-  Accident = JJDisputeAccidentYn;
-  MultipleOfficers = JJDisputeMultipleOfficersYn;
   filterValues: any = {
     jjAssignedTo: '',
     appearanceTs: new Date()
   }
   appearanceDateFilter = new FormControl(null);
   jjAssignedToFilter = new FormControl('');
-  statusComplete = this.jjDisputeService.jjDisputeStatusComplete;
-  statusDisplay: JJDisputeStatus[] = this.jjDisputeService.jjDisputeStatusDisplay;
   jjList: UserRepresentation[];
-  data$: Observable<JJDispute[]>;
-  data: JJDispute[] = [];
-  dataSource: MatTableDataSource<JJDispute> = new MatTableDataSource();
+  tcoDisputes: DisputeCaseFileSummary[] = [];
+  tcoDisputesCollection: PagedDisputeCaseFileSummaryCollection = {};
+  dataSource = new MatTableDataSource(this.tcoDisputes);
   displayedColumns: string[] = [
-    "jjAssignedToName",
+    "jjAssignedTo",
     "ticketNumber",
     "submittedTs",
     "violationDate",
-    "courthouseLocation",
-    "mostRecentCourtAppearance.appearanceTs",
-    "mostRecentCourtAppearance.duration",
-    "mostRecentCourtAppearance.room",
+    "toBeHeardAtCourthouseName",
+    "appearanceTs",
+    "appearanceDuration",
+    "appearanceRoomCode",
     "accidentYn",
     "multipleOfficersYn",
     "status",
   ];
+  currentPage: number = 1;
+  totalPages: number = 1;
+  sortBy: string = "submittedTs";
+  sortDirection: SortDirection = SortDirection.Asc;
+  disputeStatus = DisputeStatus;
+  hearingType = HearingType;
+  yesNo = YesNo;
 
   constructor(
     private jjDisputeService: JJDisputeService,
     private authService: AuthService,
-    private store: Store,
+    private logger: LoggerService,
     private readonly changeDetectorRef: ChangeDetectorRef, // Temp fix for DatetimePicker styles
   ) {
     this.authService.jjList$.subscribe(result => {
@@ -65,8 +66,7 @@ export class JJDisputeHearingInboxComponent implements OnInit, AfterViewInit {
     this.jjAssignedToFilter.valueChanges
       .subscribe(
         value => {
-          this.filterValues.jjAssignedTo = this.jjAssignedToFilter.value;
-          this.dataSource.filter = JSON.stringify(this.filterValues);
+          this.getTCODisputes();
         }
       )
 
@@ -74,24 +74,43 @@ export class JJDisputeHearingInboxComponent implements OnInit, AfterViewInit {
     this.appearanceDateFilter.valueChanges
       .subscribe(
         value => {
-          this.filterValues.appearanceTs = this.appearanceDateFilter.value;
-          this.dataSource.filter = JSON.stringify(this.filterValues);
+          this.getTCODisputes();
         }
       )
-
-    this.data$ = this.store.select(JJDisputeStore.Selectors.JJDisputes).pipe(filter(i => !!i));
   }
 
   ngOnInit(): void {
-    this.authService.userProfile$.subscribe(userProfile => {
-      if (userProfile) {
-        this.jjIDIR = userProfile.idir;
-        this.data$.subscribe(jjDisputes => {
-          this.data = jjDisputes.map(jjDispute => { return { ...jjDispute } });
-          this.getAll();
-        })
+    this.getTCODisputes();
+  }
+
+  getTCODisputes() {
+    this.logger.log('JJDisputeHearingInboxComponent::getTCODisputes');
+    const params = {
+      appearances: true,
+      multipleOfficersYn: true,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      jjAssignedTo: this.jjAssignedToFilter.value,
+      disputeStatusCodes: [DisputeStatus.New, DisputeStatus.HearingScheduled, DisputeStatus.InProgress, 
+        DisputeStatus.Review].join(","),
+      hearingTypeCd: HearingType.CourtAppearance,
+      appearanceDtFrom: this.appearanceDateFilter.value,
+      appearanceDtThru: this.appearanceDateFilter.value,
+      sortBy: this.sortDirection === SortDirection.Asc ? this.sortBy : "-" + this.sortBy,
+      pageNumber: this.currentPage,
+      pageSize: 25
+    };
+    this.jjDisputeService.getTCODisputes(params).subscribe((response) => {
+      this.tcoDisputes = [];
+      this.logger.log('JJDisputeHearingInboxComponent::getTCODisputes response');
+      this.tcoDisputesCollection = response;
+      this.currentPage = response.pageNumber;
+      this.totalPages = response.totalPages;
+      if(!this.totalPages){
+        this.currentPage = 0;
       }
-    })
+      this.tcoDisputes = response.items;
+      this.dataSource.data = this.tcoDisputes;
+    });
   }
 
   ngAfterViewInit() {
@@ -101,65 +120,34 @@ export class JJDisputeHearingInboxComponent implements OnInit, AfterViewInit {
       this.fauxPicker.close()
       this.changeDetectorRef.detectChanges()
     }
-
-    this.dataSource.sort = this.sort;
-
-    // custom sorting on columns
-    this.dataSource.sortingDataAccessor = (data: any, sortHeaderId: string): string => {
-      if (sortHeaderId === 'mostRecentCourtAppearance.appearanceTs') {
-        return data.mostRecentCourtAppearance?.appearanceTs;
-      } else if (sortHeaderId === 'mostRecentCourtAppearance.duration') {
-        return data.mostRecentCourtAppearance?.duration;
-      } else if (sortHeaderId === 'mostRecentCourtAppearance.room') {
-        return data.mostRecentCourtAppearance?.room;
-      } else if (typeof data[sortHeaderId] === 'string') {
-        return data[sortHeaderId].toLocaleLowerCase();
-      }    
-      return data[sortHeaderId];
-    };
   }
 
-  backWorkbench(element) {
-    this.jjDisputeInfo.emit(element);
+  backWorkbench(element: DisputeCaseFileSummary) {
+    this.tcoDisputeInfo.emit(element);
   }
 
-  private createFilter(): (record: JJDispute, filter: string) => boolean {
-    let filterFunction = function (record, filter): boolean {
-      let searchTerms = JSON.parse(filter);
-      let searchDate = new Date(searchTerms.appearanceTs);
-      let recordDate = record.mostRecentCourtAppearance.appearanceTs ? new Date(record.mostRecentCourtAppearance.appearanceTs) : null;
+  sortData(sort: Sort){
+    this.sortBy = sort.active;
+    this.sortDirection = sort.direction ? sort.direction as SortDirection : SortDirection.Desc;
+    this.currentPage = 1;
+    this.getTCODisputes();
+  }
 
-      return (record.jjAssignedTo?.toLocaleLowerCase().indexOf(searchTerms.jjAssignedTo?.toLocaleLowerCase()) > -1 || searchTerms?.jjAssignedTo === '' && !record.jjAssignedto)
-        && ((recordDate?.getFullYear() === searchDate.getFullYear()
-          && recordDate?.getMonth() === searchDate.getMonth()
-          && recordDate?.getDate() === searchDate.getDate()) || !searchTerms.appearanceTs);
+  onPageChange(event: number) {
+    this.currentPage = event;
+    this.getTCODisputes();
+  }
+
+  getName(jjAssignedTo: string) {
+    if (this.jjList) {
+      const jj = this.jjList.find(j => j.idir === jjAssignedTo);
+      return jj ? jj.jjDisplayName : '';
     }
-
-    return filterFunction;
   }
 
-  getAll(): void {
-    // only show status HEARING_SCHEDULED, IN_PROGRESS, REVIEW, REQUIRE_MORE_INFO
-    this.data = this.data.filter(x => this.statusDisplay.indexOf(x.status) > -1 && x.hearingType == this.HearingType.CourtAppearance);
-    this.dataSource.data = this.data;
-
-    // initially sort by submitted date within status
-    this.dataSource.data = this.dataSource.data.sort((a, b) => {
-      // if they have the same status
-      if (a.status === b.status) {
-        if (a.submittedTs > b.submittedTs) { return 1; } else { return -1; }
-      }
-
-      // compare statuses
-      else {
-        if (this.jjDisputeService.jjDisputeStatusesSorted.indexOf(a.status) > this.jjDisputeService.jjDisputeStatusesSorted.indexOf(b.status)) { return 1; } else { return -1; }
-      }
-    });
-
-    // this section allows filtering only on jj IDIR
-    this.dataSource.filterPredicate = this.createFilter();
-
-    this.jjAssignedToFilter.setValue("");
-    this.appearanceDateFilter.setValue(null);
+  isEditable(element: DisputeCaseFileSummary){
+    const editableStatuses = new Set([DisputeStatus.New, DisputeStatus.Review, DisputeStatus.InProgress, 
+      DisputeStatus.HearingScheduled]);
+    return editableStatuses.has(element.disputeStatus.code as DisputeStatus);
   }
 }

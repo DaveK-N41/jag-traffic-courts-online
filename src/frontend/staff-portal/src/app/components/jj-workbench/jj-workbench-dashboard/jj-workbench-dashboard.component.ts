@@ -1,15 +1,13 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { filter, Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { FormControl } from '@angular/forms';
 import { AuthService } from 'app/services/auth.service';
-import { JJDisputeService, JJDispute } from 'app/services/jj-dispute.service';
 import { MatLegacyTab as MatTab } from '@angular/material/legacy-tabs';
-import { AppState } from 'app/store';
-import { Store } from '@ngrx/store';
-import * as JJDisputeStore from "app/store/jj-dispute";
 import { BusyService } from '@core/services/busy.service';
 import { UserGroup } from '@shared/enums/user-group.enum';
 import { TabType } from '@shared/enums/tab-type.enum';
+import { DisputeStatus } from '@shared/consts/DisputeStatus.model';
+import { DisputeCaseFileSummary } from 'app/api';
 
 @Component({
   selector: 'app-jj-workbench-dashboard',
@@ -19,12 +17,10 @@ import { TabType } from '@shared/enums/tab-type.enum';
 export class JjWorkbenchDashboardComponent implements OnInit {
   @ViewChild("DCF") dcfTab: MatTab;
   busy: Subscription;
-
-  data$: Observable<JJDispute[]>;
   showDispute: boolean = false;
   tabSelected = new FormControl(0);
   jjPage: string = "WR Assignments";
-  jjDisputeInfo: JJDispute;
+  tcoDisputeInfo: DisputeCaseFileSummary;
   isInfoEditable: boolean = false;
   tabTypes = TabType;
   tabTypeSelected: TabType;
@@ -36,9 +32,7 @@ export class JjWorkbenchDashboardComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private busyService: BusyService,
-    private jjDisputeService: JJDisputeService,
-    private store: Store<AppState>
+    private busyService: BusyService
   ) {
   }
 
@@ -54,18 +48,17 @@ export class JjWorkbenchDashboardComponent implements OnInit {
         this.hasDCFPermission = this.authService.checkRoles([UserGroup.ADMIN_JUDICIAL_JUSTICE, UserGroup.JUDICIAL_JUSTICE, UserGroup.SUPPORT_STAFF]);
       }
     })
-    this.data$ = this.store.select(state => state.jjDispute.data).pipe(filter(i => !!i));
   }
 
-  changeJJDispute(jjDispute: JJDispute, type: TabType) {
-    this.isInfoEditable = !this.dcfTab.isActive && this.jjDisputeService.jjDisputeStatusEditable.indexOf(jjDispute.status) > -1;
-    this.jjDisputeInfo = jjDispute;
+  changeTCODispute(tcoDispute: DisputeCaseFileSummary, type: TabType) {
+    this.isInfoEditable = !this.dcfTab.isActive && [DisputeStatus.New, DisputeStatus.Review, DisputeStatus.InProgress, 
+      DisputeStatus.HearingScheduled].includes(tcoDispute.disputeStatus.code as DisputeStatus);
+    this.tcoDisputeInfo = tcoDispute;
     this.tabTypeSelected = type;
     this.showDispute = true;
   }
 
   backInbox() {
     this.showDispute = false;
-    this.store.dispatch(JJDisputeStore.Actions.Get());
   }
 }

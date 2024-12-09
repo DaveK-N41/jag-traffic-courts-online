@@ -1,140 +1,135 @@
-import { Component, OnInit, ViewChild, AfterViewInit, Output, EventEmitter, Input } from '@angular/core';
+import { Component, OnInit, ViewChild, Output, EventEmitter, Input } from '@angular/core';
 import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
-import { MatSort } from '@angular/material/sort';
-import { JJDispute } from 'app/services/jj-dispute.service';
+import { MatSort, Sort } from '@angular/material/sort';
+import { JJDisputeService } from 'app/services/jj-dispute.service';
 import { LoggerService } from '@core/services/logger.service';
-import { Observable, filter } from 'rxjs';
-import { JJDisputeStatus } from 'app/api';
+import { DisputeCaseFileSummary, PagedDisputeCaseFileSummaryCollection, SortDirection } from 'app/api';
 import { AuthService } from 'app/services/auth.service';
 import { LookupsService } from 'app/services/lookups.service';
-import { AppState } from 'app/store/app.state';
-import { Store } from '@ngrx/store';
-import { DateUtil } from '@shared/utils/date-util';
 import { TableFilter, TableFilterKeys } from '@shared/models/table-filter-options.model';
 import { TableFilterService } from 'app/services/table-filter.service';
+import { DisputeStatus } from '@shared/consts/DisputeStatus.model';
 
 @Component({
   selector: 'app-dispute-decision-inbox',
   templateUrl: './dispute-decision-inbox.component.html',
   styleUrls: ['./dispute-decision-inbox.component.scss'],
 })
-export class DisputeDecisionInboxComponent implements OnInit, AfterViewInit {
+export class DisputeDecisionInboxComponent implements OnInit {
   @Input() tabIndex: number;
   courthouseTeamNames = ["A", "B", "C", "D"];
 
-  @Output() jjDisputeInfo: EventEmitter<JJDispute> = new EventEmitter();
+  @Output() tcoDisputeInfo: EventEmitter<DisputeCaseFileSummary> = new EventEmitter();
   @ViewChild(MatSort) sort = new MatSort();
 
   IDIR: string = "";
-  currentTeam: string = "All";
   courthouseTeams = {};
-  data$: Observable<JJDispute[]>;
-  data = [] as JJDispute[];
-  dataSource: MatTableDataSource<JJDispute> = new MatTableDataSource();
-  tableFilterKeys: TableFilterKeys[] = ["decisionDateFrom", "decisionDateTo", "occamDisputantName", "courthouseLocation", "ticketNumber", "team"];
+  tcoDisputes: DisputeCaseFileSummary[] = [];
+  tcoDisputesCollection: PagedDisputeCaseFileSummaryCollection = {};
+  dataSource = new MatTableDataSource(this.tcoDisputes);
+  tableFilterKeys: TableFilterKeys[] = ["decisionDateFrom", "decisionDateTo", "surname", "courthouseLocation", "ticketNumber", "team"];
 
   displayedColumns: string[] = [
     "ticketNumber",
     "jjDecisionDate",
-    "jjAssignedTo",
+    "signatoryName",
     "violationDate",
-    "occamDisputantName",
-    "courthouseLocation",
-    "mostRecentCourtAppearance.room",
+    "surname",
+    "toBeHeardAtCourthouseName",
+    "appearanceRoomCode",
     "status",
     "vtcAssignedTo"
   ];
+  currentPage: number = 1;
+  totalPages: number = 1;
+  sortBy: string = "jjDecisionDate";
+  sortDirection: SortDirection = SortDirection.Asc;
+  filters: TableFilter = new TableFilter();
+  disputeStatus = DisputeStatus;
 
   constructor(
     private logger: LoggerService,
     private authService: AuthService,
     private lookupsService: LookupsService,
-    private store: Store<AppState>,
     private tableFilterService: TableFilterService,
+    private jjDisputeService: JJDisputeService
   ) {
-    this.data$ = this.store.select(state => state.jjDispute.data).pipe( filter(i => !!i));
+    this.getCourthouseAgencyIds();
+  }
+
+  getCourthouseAgencyIds() {
     this.courthouseTeamNames.forEach(teamName => {
-      this.courthouseTeams[teamName] = this.lookupsService.courthouseTeams.filter(x => x.__team === teamName).map(x => x.name.toLocaleLowerCase());
-    })
+      let matchingTeams = this.lookupsService.courthouseTeams.filter(x => x.__team === teamName);
+      let ids = matchingTeams.flatMap(team => 
+        this.lookupsService.courthouseAgencies.filter(agency => agency.name.toLowerCase() === team.name.toLowerCase()).map(agency => agency.id));
+      this.courthouseTeams[teamName] = ids;
+    });
   }
 
   public ngOnInit() {
+    let dataFilter: TableFilter = this.tableFilterService.tableFilters[this.tabIndex];
+    dataFilter.status = dataFilter.status ?? "";
+    this.filters = dataFilter;
     this.authService.userProfile$.subscribe(userProfile => {
-        if (userProfile) {
-            this.IDIR = userProfile.idir;
-            this.data$.subscribe(jjDisputes => {
-                this.data = jjDisputes
-                    .map(jjDispute => {
-                        return {
-                            ...jjDispute,
-                            __status: jjDispute.status === 'REQUIRE_COURT_HEARING'
-                                ? 'Adjourn/Require Hearing'
-                                : jjDispute.status
-                                    .replace(/^[-_]*(.)/, (_, c) => c)
-                                    .replace(/[-_]+(.)/g, (_, c) => ' ' + c)
-                                    .replace(
-                                        /\w\S*/g,
-                                        function (txt) {
-                                            return txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
-                                        })
-                        };
-                    });
-                this.getAll();
-            })
-        }
+      if (userProfile) {
+        this.IDIR = userProfile.idir;
+        this.getTCODisputes();
+      }
+    });
+  }
+
+  backWorkbench(value: DisputeCaseFileSummary) {
+    this.tcoDisputeInfo.emit(value);
+  }
+
+  getTCODisputes(): void {
+    this.logger.log('JJDisputeDecisionInboxComponent::getTCODisputes');
+
+    const params = {
+      appearances: true,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      jjDecisionDtFrom: this.filters.decisionDateFrom,
+      jjDecisionDtThru: this.filters.decisionDateTo,
+      ticketNumber: this.filters.ticketNumber ? this.filters.ticketNumber.toUpperCase() : "",
+      surname: this.filters.surname ?? "",
+      disputeStatusCodes: DisputeStatus.Confirmed + "," + DisputeStatus.RequireCourtHearing,
+      toBeHeardAtCourthouseIds: this.filters.courthouseLocation && this.filters.courthouseLocation.length > 0 ? 
+        this.filters.courthouseLocation.map(x => x.id).join(",") : 
+        (this.filters.team ? this.courthouseTeams[this.filters.team].join(",") : ""),
+      sortBy: this.sortDirection === SortDirection.Asc ? this.sortBy : "-" + this.sortBy,
+      pageNumber: this.currentPage,
+      pageSize: 25
+    };
+    this.jjDisputeService.getTCODisputes(params).subscribe((response) => {
+      this.tcoDisputes = [];
+      this.logger.log('JJDisputeDecisionInboxComponent::getTCODisputes response');
+      this.tcoDisputesCollection = response;
+      this.currentPage = response.pageNumber;
+      this.totalPages = response.totalPages;
+      if(!this.totalPages){
+        this.currentPage = 0;
+      }
+      this.tcoDisputes = response.items;
+      this.dataSource.data = this.tcoDisputes;
     });
   }
 
   onApplyFilter(dataFilters: TableFilter) {
-    this.dataSource.filter = JSON.stringify(dataFilters);
+    this.filters = dataFilters;
+    this.currentPage = 1;
+    this.getTCODisputes();
   }
 
-  searchFilter = function (record: JJDispute, filter: string) {
-    let searchTerms = JSON.parse(filter);
-    return Object.entries(searchTerms).every(([field, value]: [string, string]) => {
-      if ("decisionDateFrom" === field) {
-        return !value || !DateUtil.isValid(value) || DateUtil.isDateOnOrAfter(record.jjDecisionDate, value);
-      }
-      else if ("decisionDateTo" === field) {
-        return !value || !DateUtil.isValid(value) || DateUtil.isDateOnOrBefore(record.jjDecisionDate, value);
-      }
-      else if ("team" === field) {
-        if (value === '' || value === "All") {
-          return true;
-        }
-        else if (this.courthouseTeamNames.includes(value)) {
-          return this.courthouseTeams[value].includes(record.courthouseLocation.toLocaleLowerCase());
-        }
-        return false;
-      }
-      else if (record[field]) {
-        return record[field].toLocaleLowerCase().indexOf(value.trim().toLocaleLowerCase()) != -1;
-      }
-      return true;
-    });
-  }.bind(this);
-
-  ngAfterViewInit() {
-    this.dataSource.sort = this.sort;
+  sortData(sort: Sort){
+    this.sortBy = sort.active;
+    this.sortDirection = sort.direction ? sort.direction as SortDirection : SortDirection.Desc;
+    this.currentPage = 1;
+    this.getTCODisputes();
   }
 
-  backWorkbench(value: JJDispute) {
-    this.jjDisputeInfo.emit(value);
-  }
-
-  getAll(): void {
-    this.logger.log('JJDisputeDecisionInboxComponent::getAllDisputes');
-
-    // filter jj disputes only show those in CONFIRMED status or REQUIRE_COURT_HEARING
-    this.data = this.data.filter(x => x.status == JJDisputeStatus.Confirmed || x.status === JJDisputeStatus.RequireCourtHearing);
-    this.dataSource.data = this.data;
-    this.dataSource.filterPredicate = this.searchFilter;
-
-    // initially sort by decision date within status
-    this.dataSource.data = this.dataSource.data.sort((a, b) => {
-      if (a.jjDecisionDate > b.jjDecisionDate) { return 1; } else { return -1; }
-    });
-
-    this.onApplyFilter(this.tableFilterService.tableFilters[this.tabIndex]);
+  onPageChange(event: number) {
+    this.currentPage = event;
+    this.getTCODisputes();
   }
 }
+
