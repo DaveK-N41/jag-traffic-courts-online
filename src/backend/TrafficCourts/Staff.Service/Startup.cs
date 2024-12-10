@@ -1,18 +1,19 @@
+using FastEndpoints;
 using MassTransit;
 using Microsoft.OpenApi.Models;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using System.Reflection;
 using System.Text.Json.Serialization;
+using TrafficCourts.Caching;
 using TrafficCourts.Common;
 using TrafficCourts.Common.Authentication;
 using TrafficCourts.Common.Configuration;
 using TrafficCourts.Messaging;
+using TrafficCourts.OrdsDataService;
 using TrafficCourts.Staff.Service.Authentication;
 using TrafficCourts.Staff.Service.Services;
-using TrafficCourts.Caching;
 using ZiggyCreatures.Caching.Fusion;
-using FastEndpoints;
 
 namespace TrafficCourts.Staff.Service;
 
@@ -40,6 +41,7 @@ public static class Startup
                 })
                 .AddMassTransitInstrumentation()
                 .AddOracleDataApiInstrumentation()
+                .AddOrdsDataServiceInstrumentation()
                 .AddRedisInstrumentation();
         },
         options => 
@@ -48,11 +50,11 @@ public static class Startup
                 .AddComsClientInstrumentation()
                 .AddFusionCacheInstrumentation()
                 .AddMassTransitInstrumentation()
-                .AddOracleDataApiInstrumentation();
+                .AddOracleDataApiInstrumentation()
+                .AddOrdsDataServiceInstrumentation();
         });
 
         builder.Services.AddFastEndpoints();
-
 
         builder.Services.AddOrdsDataService(builder.Configuration);
 
