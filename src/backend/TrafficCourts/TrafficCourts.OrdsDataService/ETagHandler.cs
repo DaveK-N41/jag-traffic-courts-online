@@ -34,13 +34,16 @@ public class ETagHandler : DelegatingHandler
 
     private readonly IMemoryCache _cache;
 
-    private static readonly Meter Meter = new Meter("TrafficCourts.OrdsDataService.ETagHandler", "1.0");
-    private static readonly Counter<long> CacheHitCounter = Meter.CreateCounter<long>("etag_cache_hits");
-    private static readonly Counter<long> CacheMissCounter = Meter.CreateCounter<long>("etag_cache_misses");
+    private readonly Counter<long> _cacheHitCounter;
+    private readonly Counter<long> _cacheMissCounter;
 
-    public ETagHandler(IMemoryCache cache)
+    public ETagHandler(IMemoryCache cache, IMeterFactory factory)
     {
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+
+        var meter = factory.Create(OrdsDataServiceOperationMetrics.MeterName);
+        _cacheHitCounter = meter.CreateCounter<long>("etag_cache_hits");
+        _cacheMissCounter = meter.CreateCounter<long>("etag_cache_misses");
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -70,7 +73,7 @@ public class ETagHandler : DelegatingHandler
         // already had the response
         if (response.StatusCode == System.Net.HttpStatusCode.NotModified)
         {
-            CacheHitCounter.Add(1, pathTag, expirationTag);
+            _cacheHitCounter.Add(1, pathTag, expirationTag);
             response = CreateResponse(request, cacheEntry);
             return response;
         }
@@ -78,7 +81,7 @@ public class ETagHandler : DelegatingHandler
         {
             if (haveCacheEntry)
             {
-                CacheMissCounter.Add(1, pathTag, expirationTag); // this same request was different than the cached response
+                _cacheMissCounter.Add(1, pathTag, expirationTag); // this same request was different than the cached response
             }
         }
 
