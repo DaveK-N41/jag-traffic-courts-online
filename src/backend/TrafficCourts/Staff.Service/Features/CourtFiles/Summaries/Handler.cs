@@ -141,8 +141,11 @@ public class Handler : IRequestHandler<Request, Response>
 
         AddDateRangeFilter(parameters, "appr_tm", request.appearance_dt_from, request.appearance_dt_thru);
 
-        if (request.ticket_number is not null) parameters.Add("ticket_number_txt_eq", request.ticket_number);
-        if (request.surname is not null) parameters.Add("prof_surname_nm_eq", request.surname);
+        // Search where starts with the spuplied value. We could also use "_regexp_like" and use a regex pattern
+        // ticket number is always uppercase
+        AddLikeFilter(parameters, "ticket_number_txt", request.ticket_number);
+        AddLikeFilter(parameters, "prof_surname_nm", request.surname);
+
         if (request.jj_assigned_to is not null) parameters.Add("jj_assigned_to_eq", request.jj_assigned_to);
 
         if (request.dispute_status_codes is not null) parameters.Add("dispute_status_type_cd_in", request.dispute_status_codes);
@@ -153,6 +156,22 @@ public class Handler : IRequestHandler<Request, Response>
         {
             parameters.Add("appr_ctrm_agen_id_in", request.appearance_courthouse_ids);
         }
+    }
+
+    private void AddLikeFilter(Dictionary<string, string> parameters, string field, string? value, bool toUpper = true)
+    {
+        if (value is null)
+        {
+            return;
+        }
+
+        if (toUpper)
+        {
+            value = value.ToUpper();
+        }
+
+        value = value.TrimEnd(); // remove trailing spaces
+        parameters.Add($"{field}_like", $"{value}%");
     }
 
     private void AddDateRangeFilter(Dictionary<string, string> parameters, string field, string? from, string? thru)
