@@ -42,8 +42,8 @@ public class ETagHandler : DelegatingHandler
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
 
         var meter = factory.Create(OrdsDataServiceOperationMetrics.MeterName);
-        _cacheHitCounter = meter.CreateCounter<long>("etag_cache_hits");
-        _cacheMissCounter = meter.CreateCounter<long>("etag_cache_misses");
+        _cacheHitCounter = meter.CreateCounter<long>("ordsdataservice_etag_cache_hits");
+        _cacheMissCounter = meter.CreateCounter<long>("ordsdataservice_etag_cache_misses");
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -58,11 +58,9 @@ public class ETagHandler : DelegatingHandler
 
         var cacheKey = $"etag-{request.RequestUri}";
 
-        bool haveCacheEntry = false;
         // add the If-None-Match header if we have a cached response
         if (_cache.TryGetValue(cacheKey, out (string ETag, HttpResponseMessage ResponseMessage, byte[] ResponseBody) cacheEntry))
         {
-            haveCacheEntry = true;
             request.Headers.IfNoneMatch.Add(new System.Net.Http.Headers.EntityTagHeaderValue(cacheEntry.ETag));
         }
 
@@ -70,6 +68,7 @@ public class ETagHandler : DelegatingHandler
 
         var pathTag = new KeyValuePair<string, object?>("path", request.RequestUri!.AbsolutePath);
         var expirationTag = new KeyValuePair<string, object?>("expiration-secs", (int)expiration.TotalSeconds);
+
         // already had the response
         if (response.StatusCode == System.Net.HttpStatusCode.NotModified)
         {
@@ -79,10 +78,7 @@ public class ETagHandler : DelegatingHandler
         }
         else
         {
-            if (haveCacheEntry)
-            {
-                _cacheMissCounter.Add(1, pathTag, expirationTag); // this same request was different than the cached response
-            }
+            _cacheMissCounter.Add(1, pathTag, expirationTag); // this same request was different than the cached response
         }
 
         if (response.Headers.ETag != null)
