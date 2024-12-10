@@ -60,8 +60,7 @@ export class JJDisputeWRInboxComponent implements OnInit {
     const params = {
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       jjAssignedTo: this.jjIDIR,
-      disputeStatusCodes: [DisputeStatus.New, DisputeStatus.HearingScheduled, DisputeStatus.InProgress, 
-        DisputeStatus.Review].join(","),
+      disputeStatusCodes: [DisputeStatus.New, DisputeStatus.InProgress, DisputeStatus.Review].join(","),
       hearingTypeCd: HearingType.WrittenReasons,
       sortBy: this.sortDirection === SortDirection.Asc ? this.sortBy : "-" + this.sortBy,
       pageNumber: this.currentPage,
