@@ -1,4 +1,6 @@
-﻿using System.Collections.Specialized;
+﻿using OpenTelemetry.Metrics;
+using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using System.Web;
@@ -8,24 +10,14 @@ namespace TrafficCourts.OrdsDataService;
 internal class OrdsDataServiceClient
 {
     private readonly HttpClient _httpClient;
+    private readonly IOrdsDataServiceOperationMetrics _metrics;
     private bool _readContentAsString = false;
 
-    public OrdsDataServiceClient(HttpClient httpClient)
+    public OrdsDataServiceClient(HttpClient httpClient, IOrdsDataServiceOperationMetrics metrics)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        _metrics = metrics;
     }
-
-    public Task<T?> GetAsync<T>(
-     string path,
-     JsonTypeInfo<T> jsonTypeInfo,
-     CancellationToken cancellationToken) => GetAsync(path, parameters: null, jsonTypeInfo, ETagCache.FiveMinutes, cancellationToken);
-
-    public Task<T?> GetAsync<T>(
-     string path,
-     JsonTypeInfo<T> jsonTypeInfo,
-     ETagCache cache,
-     CancellationToken cancellationToken) => GetAsync(path, parameters: null, jsonTypeInfo, cache, cancellationToken);
-
 
     public async Task<T?> GetAsync<T>(
         string path,
@@ -37,21 +29,35 @@ internal class OrdsDataServiceClient
         ArgumentException.ThrowIfNullOrEmpty(path);
         ArgumentNullException.ThrowIfNull(jsonTypeInfo);
 
-        // build the path with query string parameters
-        path = _httpClient.BaseAddress.AbsolutePath + GetPath(path, parameters);
+        using var operation = _metrics.BeginOperation(path);
+        operation.AddTag("method", "GET");
 
-        // create our request and set the request options for caching
-        
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, path);
-        request.Options.Set(new HttpRequestOptionsKey<ETagCache>(nameof(ETagCache)), cache);
+        try
+        {
+            // build the path with query string parameters
+            Debug.Assert(_httpClient.BaseAddress != null);
+            path = _httpClient.BaseAddress!.AbsolutePath + GetPath(path, parameters);
 
-        // send the request
-        HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
-        response.EnsureSuccessStatusCode();
+            // create our request and set the request options for caching
 
-        T? result = await ReadContentAsync(response, jsonTypeInfo, cancellationToken);
+            HttpRequestMessage request = new(HttpMethod.Get, path);
+            // add the cache policy to the request options
+            request.Options.Set(new HttpRequestOptionsKey<ETagCache>(nameof(ETagCache)), cache);
 
-        return result;
+            // send the request
+            HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            T? result = await ReadContentAsync(response, jsonTypeInfo, cancellationToken);
+
+            return result;
+
+        }
+        catch (Exception exception)
+        {
+            operation.Error(exception);
+            throw;
+        }
     }
 
     private async Task<T?> ReadContentAsync<T>(HttpResponseMessage response, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellationToken)

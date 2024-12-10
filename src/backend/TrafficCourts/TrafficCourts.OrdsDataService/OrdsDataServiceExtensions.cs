@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using System.Diagnostics.Metrics;
 using System.Net.Http.Headers;
 using System.Text;
 using TrafficCourts.OrdsDataService;
@@ -30,10 +31,13 @@ public static class OrdsDataServiceExtensions
         })
         .AddHttpMessageHandler(sp =>
         {
-            var cache = sp.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
-            ETagHandler handler = new ETagHandler(cache);
+            var cache = sp.GetRequiredService<Caching.Memory.IMemoryCache>();
+            var factory = sp.GetRequiredService<IMeterFactory>();
+            ETagHandler handler = new ETagHandler(cache, factory);
             return handler;
         });
+
+        services.AddSingleton<IOrdsDataServiceOperationMetrics, OrdsDataServiceOperationMetrics>();
 
         // justin
         services.AddTransient<IAgencyRepository, AgencyRepository>();
