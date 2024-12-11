@@ -31,33 +31,44 @@ public abstract class BaseLookupService implements LookupService {
 
 	@Override
 	public void refresh() {
-		log.debug("Refreshing code tables in redis.");
+	    log.debug("Refreshing code tables in redis.");
 
-		try {
-			// replace the Statutes key with a new json-serialized version of the statutes list.
-			log.debug("  refreshing Statutes...");
-			redis.opsForValue().set(STATUTES, Json.pretty(getStatutes()));
+	    try {
+	        log.debug("  refreshing Statutes...");
+	        redis.opsForValue().set(STATUTES, Json.pretty(getStatutes()));
+	    } catch (Exception e) {
+	        log.error("Could not update Statutes in redis", e);
+	    }
 
-			// replace the Languages key with a new json-serialized version of the languages list.
-			log.debug("  refreshing Languages...");
-			redis.opsForValue().set(LANGUAGES, Json.pretty(getLanguages()));
-			
-			// replace the Agencies key with a new json-serialized version of the agencies list.
-			log.debug(" refreshing Agencies...");
-			redis.opsForValue().set(AGENCIES, Json.pretty(getAgencies()));
-			
-			// replace the Provinces key with a new json-serialized version of the provinces list.
-			log.debug(" refreshing Provinces...");
-			redis.opsForValue().set(PROVINCES, Json.pretty(getProvinces()));
+	    try {
+	        log.debug("  refreshing Languages...");
+	        redis.opsForValue().set(LANGUAGES, Json.pretty(getLanguages()));
+	    } catch (Exception e) {
+	        log.error("Could not update Languages in redis", e);
+	    }
 
-			// replace the Countries key with a new json-serialized version of the countries list.
-			log.debug(" refreshing Countries...");
-			redis.opsForValue().set(COUNTRIES, Json.pretty(getCountries()));
-			
-			log.debug("Code tables in redis refreshed.");
-		} catch (Exception e) {
-			log.error("Could not update code tables in redis", e);
-		}
+	    try {
+	        log.debug("  refreshing Agencies...");
+	        redis.opsForValue().set(AGENCIES, Json.pretty(getAgencies()));
+	    } catch (Exception e) {
+	        log.error("Could not update Agencies in redis", e);
+	    }
+
+	    try {
+	        log.debug("  refreshing Provinces...");
+	        redis.opsForValue().set(PROVINCES, Json.pretty(getProvinces()));
+	    } catch (Exception e) {
+	        log.error("Could not update Provinces in redis", e);
+	    }
+
+	    try {
+	        log.debug("  refreshing Countries...");
+	        redis.opsForValue().set(COUNTRIES, Json.pretty(getCountries()));
+	    } catch (Exception e) {
+	        log.error("Could not update Countries in redis", e);
+	    }
+
+	    log.debug("Code tables in redis refreshed.");
 	}
 
 	@Override
