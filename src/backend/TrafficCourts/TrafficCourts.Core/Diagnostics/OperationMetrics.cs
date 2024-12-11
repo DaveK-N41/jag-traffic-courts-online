@@ -35,6 +35,8 @@ public abstract class OperationMetrics : IOperationMetrics, IDisposable
         _timer = new Timer(_meter, $"{name}.operation.duration", "ms", $"Elapsed time spent executing a {description} operation");
     }
 
+    protected Meter Meter => _meter;
+
     /// <summary>
     /// Begins a named operation
     /// </summary>
@@ -62,6 +64,6 @@ public abstract class OperationMetrics : IOperationMetrics, IDisposable
 
     public void Dispose()
     {
-        _meter.Dispose();
+        Meter.Dispose();
     }
 }
