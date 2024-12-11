@@ -3,6 +3,7 @@ using TrafficCourts.Common.Configuration;
 using TrafficCourts.Configuration.Validation;
 using TrafficCourts.Diagnostics;
 using TrafficCourts.Staff.Service;
+using TrafficCourts.Staff.Service.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 var logger = builder.GetProgramLogger();
@@ -17,6 +18,8 @@ app.UseRouting(); //if using, this call must go before auth/cors/fastendpoints m
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<ETagMiddleware>();
 
 app.UseFastEndpoints(c => {
     c.Endpoints.RoutePrefix = "api";
