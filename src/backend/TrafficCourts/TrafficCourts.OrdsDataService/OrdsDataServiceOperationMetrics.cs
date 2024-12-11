@@ -9,9 +9,23 @@ internal class OrdsDataServiceOperationMetrics : OperationMetrics, IOrdsDataServ
 {
     public const string MeterName = "OrdsDataService";
 
+    private readonly Counter<long> _cacheHitCounter;
+    private readonly Counter<long> _cacheMissCounter;
+
     public OrdsDataServiceOperationMetrics(IMeterFactory factory) : base(factory, MeterName, "ordsdataservice", "ORDS Data Service")
     {
+        _cacheHitCounter = Meter.CreateCounter<long>("ordsdataservice.etag.cache.hits");
+        _cacheMissCounter = Meter.CreateCounter<long>("ordsdataservice.etag.cache.misses");
     }
+
+    /// <summary>
+    /// Records a OrdsDataService ETag cache hit.
+    /// </summary>
+    public void RecordEtagCacheHit(KeyValuePair<string, object?> tag1, KeyValuePair<string, object?> tag2) => _cacheHitCounter.Add(1, tag1, tag2);
+    /// <summary>
+    /// Records a OrdsDataService ETag cache miss.
+    /// </summary>
+    public void RecordEtagCacheMiss(KeyValuePair<string, object?> tag1, KeyValuePair<string, object?> tag2) => _cacheMissCounter.Add(1, tag1, tag2);
 }
 
 public static class TracerProviderBuilderExtensions

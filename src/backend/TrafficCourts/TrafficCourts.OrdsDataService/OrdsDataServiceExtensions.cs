@@ -32,8 +32,8 @@ public static class OrdsDataServiceExtensions
         .AddHttpMessageHandler(sp =>
         {
             var cache = sp.GetRequiredService<Caching.Memory.IMemoryCache>();
-            var factory = sp.GetRequiredService<IMeterFactory>();
-            ETagHandler handler = new ETagHandler(cache, factory);
+            var metrics = sp.GetRequiredService<IOrdsDataServiceOperationMetrics>();
+            ETagHandler handler = new ETagHandler(cache, metrics);
             return handler;
         });
 
