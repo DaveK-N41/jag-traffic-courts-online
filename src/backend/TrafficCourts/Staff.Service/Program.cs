@@ -19,7 +19,9 @@ app.UseRouting(); //if using, this call must go before auth/cors/fastendpoints m
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseMiddleware<ETagMiddleware>();
+// angular app not currently sending if-none-match headers,
+// so this middleware is not currently needed
+//app.UseMiddleware<ETagMiddleware>();
 
 app.UseFastEndpoints(c => {
     c.Endpoints.RoutePrefix = "api";
