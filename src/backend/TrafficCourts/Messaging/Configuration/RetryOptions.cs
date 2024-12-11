@@ -15,5 +15,5 @@ public class RetryOptions
     /// <summary>
     /// Limits the number of concurrent messages consumed on the receive endpoint, regardless of message type.
     /// </summary>
-    public int? ConcurrencyLimit { get; set; }
+    public int? ConcurrencyLimit { get; set; } = 1;
 }
