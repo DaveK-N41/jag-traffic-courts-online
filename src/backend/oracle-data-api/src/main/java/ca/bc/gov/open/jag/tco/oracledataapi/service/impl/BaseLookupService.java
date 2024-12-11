@@ -32,35 +32,40 @@ public abstract class BaseLookupService implements LookupService {
 	@Override
 	public void refresh() {
 	    log.debug("Refreshing code tables in redis.");
-
+	    
+	    // replace the Statutes key with a new json-serialized version of the statutes list.
 	    try {
 	        log.debug("  refreshing Statutes...");
 	        redis.opsForValue().set(STATUTES, Json.pretty(getStatutes()));
 	    } catch (Exception e) {
 	        log.error("Could not update Statutes in redis", e);
 	    }
-
+	    
+	    // replace the Languages key with a new json-serialized version of the languages list.
 	    try {
 	        log.debug("  refreshing Languages...");
 	        redis.opsForValue().set(LANGUAGES, Json.pretty(getLanguages()));
 	    } catch (Exception e) {
 	        log.error("Could not update Languages in redis", e);
 	    }
-
+	    
+	    // replace the Agencies key with a new json-serialized version of the agencies list.
 	    try {
 	        log.debug("  refreshing Agencies...");
 	        redis.opsForValue().set(AGENCIES, Json.pretty(getAgencies()));
 	    } catch (Exception e) {
 	        log.error("Could not update Agencies in redis", e);
 	    }
-
+	    
+	    // replace the Provinces key with a new json-serialized version of the provinces list.
 	    try {
 	        log.debug("  refreshing Provinces...");
 	        redis.opsForValue().set(PROVINCES, Json.pretty(getProvinces()));
 	    } catch (Exception e) {
 	        log.error("Could not update Provinces in redis", e);
 	    }
-
+	    
+	    // replace the Countries key with a new json-serialized version of the countries list.
 	    try {
 	        log.debug("  refreshing Countries...");
 	        redis.opsForValue().set(COUNTRIES, Json.pretty(getCountries()));
