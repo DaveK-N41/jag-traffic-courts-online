@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Caching.Memory;
+using OpenTelemetry.Metrics;
 using System.Diagnostics.Metrics;
 
 namespace TrafficCourts.OrdsDataService;
@@ -33,17 +34,12 @@ public class ETagHandler : DelegatingHandler
     public const string NoCache = "no-cache";
 
     private readonly IMemoryCache _cache;
+    private readonly IOrdsDataServiceOperationMetrics _metrics;
 
-    private readonly Counter<long> _cacheHitCounter;
-    private readonly Counter<long> _cacheMissCounter;
-
-    public ETagHandler(IMemoryCache cache, IMeterFactory factory)
+    internal ETagHandler(IMemoryCache cache, IOrdsDataServiceOperationMetrics metrics)
     {
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
-
-        var meter = factory.Create(OrdsDataServiceOperationMetrics.MeterName);
-        _cacheHitCounter = meter.CreateCounter<long>("etag_cache_hits");
-        _cacheMissCounter = meter.CreateCounter<long>("etag_cache_misses");
+        _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -58,11 +54,9 @@ public class ETagHandler : DelegatingHandler
 
         var cacheKey = $"etag-{request.RequestUri}";
 
-        bool haveCacheEntry = false;
         // add the If-None-Match header if we have a cached response
         if (_cache.TryGetValue(cacheKey, out (string ETag, HttpResponseMessage ResponseMessage, byte[] ResponseBody) cacheEntry))
         {
-            haveCacheEntry = true;
             request.Headers.IfNoneMatch.Add(new System.Net.Http.Headers.EntityTagHeaderValue(cacheEntry.ETag));
         }
 
@@ -70,23 +64,20 @@ public class ETagHandler : DelegatingHandler
 
         var pathTag = new KeyValuePair<string, object?>("path", request.RequestUri!.AbsolutePath);
         var expirationTag = new KeyValuePair<string, object?>("expiration-secs", (int)expiration.TotalSeconds);
-        // already had the response
+
+        // already have the response
         if (response.StatusCode == System.Net.HttpStatusCode.NotModified)
         {
-            _cacheHitCounter.Add(1, pathTag, expirationTag);
+            _metrics.RecordEtagCacheHit(pathTag, expirationTag);
             response = CreateResponse(request, cacheEntry);
             return response;
-        }
-        else
-        {
-            if (haveCacheEntry)
-            {
-                _cacheMissCounter.Add(1, pathTag, expirationTag); // this same request was different than the cached response
-            }
         }
 
         if (response.Headers.ETag != null)
         {
+            // only increment the cache miss if we have a etag
+            _metrics.RecordEtagCacheMiss(pathTag, expirationTag);
+
             var responseBody = await response.Content.ReadAsByteArrayAsync(cancellationToken);
             
             // create response template

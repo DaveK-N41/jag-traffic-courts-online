@@ -130,13 +130,16 @@ public partial class TicketSearchService : ITicketSearchService
     {
         if (!string.IsNullOrEmpty(invoice.DiscountAmount))
         {
-            if (decimal.TryParse(invoice.DiscountAmount, out decimal discountAmount))
+            if (invoice.DiscountAmount != "n/a")
             {
-                return discountAmount;
-            }
-            else
-            {
-                _logger.LogInformation("Invoice discount amount is not a valid decimal value, the value was {InvalidDiscountAmount}", invoice.DiscountAmount);
+                if (decimal.TryParse(invoice.DiscountAmount, out decimal discountAmount))
+                {
+                    return discountAmount;
+                }
+                else
+                {
+                    _logger.LogInformation("Invoice discount amount is not a valid decimal value, the value was {InvalidDiscountAmount}", invoice.DiscountAmount);
+                }
             }
         }
         else

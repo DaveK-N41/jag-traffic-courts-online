@@ -97,6 +97,8 @@ public static class BusConfiguratorExtensions
 
             configure.SetQuorumQueue();
 
+            configure.PrefetchCount = 1; // default is 16
+
             // enable instrumentation using the built-in .NET Meter class, which can be collected by OpenTelemetry
             configure.UseInstrumentation(serviceName: serviceName);
 
