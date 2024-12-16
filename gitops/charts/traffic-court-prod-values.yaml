@@ -398,7 +398,7 @@ staff-web:
         { "id": "10243.0007", "name": "Western Communities Provincial Court", "typeCode": "CTH", "__team": "D" },
         { "id": "51365.0009", "name": "Williams Lake Elks Hall", "typeCode": "CTH", "__team": "D" },
         { "id": "9070.0007", "name": "Williams Lake Law Courts", "typeCode": "CTH", "__team": "D" },
-        { "id": "52615.0009", "name": "Williams Lake MacKinnon Hall", "typeCode": "CTH", "__team": "D" },
+        { "id": "52615.0009", "name": "Williams Lake MacKinnon Hall", "typeCode": "CTH", "__team": "D" }
       ]
     }
 
