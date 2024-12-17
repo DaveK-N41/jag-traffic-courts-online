@@ -85,8 +85,7 @@ export class JJDisputeWRAssignmentsComponent implements OnInit {
     this.logger.log('JJDisputeWRAssignmentsComponent::getTCODisputes');
     const params = {
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      disputeStatusCodes: [DisputeStatus.New, DisputeStatus.Review, DisputeStatus.InProgress, 
-        DisputeStatus.HearingScheduled].join(","),
+      disputeStatusCodes: [DisputeStatus.New, DisputeStatus.Review, DisputeStatus.InProgress].join(","),
       hearingTypeCd: HearingType.WrittenReasons,
       toBeHeardAtCourthouseIds: this.courthouseTeamIds[this.currentTeam] ? 
         this.courthouseTeamIds[this.currentTeam].join(",") : "",
