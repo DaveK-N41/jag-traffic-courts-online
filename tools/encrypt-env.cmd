@@ -1,4 +1,4 @@
 age --encrypt ^
   -o %~dp0env.age ^
-  -R age-recipients.txt ^
+  -R %~dp0age-recipients.txt ^
   %~dp0..\.env
