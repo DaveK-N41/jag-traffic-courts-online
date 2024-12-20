@@ -29,9 +29,9 @@ involve making a more expensive join, they excluded by default. Callers can requ
 these fields in the response. There is an include parameter that can accept one or more of
 these parameters
 
-`include=parameter-list`
+Query String Parameter: `include=parameter-list`
 
-| Parameter | | Notes |
+| Parameter | Notes |
 | --------- | --------- |
 | appearances | The results should include fields related to the next unresulted appearance | 
 | notice_of_hearing_yn | The results should include if there is a notice of hearing |
@@ -40,7 +40,7 @@ these parameters
 
 #### Filter Options
 
-`parameter_operator=value(s)`
+Query String Parameters: `parameter_operator=value(s)`
 
 | Parameter | Type | Notes |
 | --------- | ---- | --------- |
@@ -64,7 +64,7 @@ these parameters
 
 #### Order By
 
-`order=field-list`
+Query String Parameter: `order=field-list`
 
 Almost any field can be sorted on. To sort descending, prefix the field with a `-`. For example, `order=prof_surname_nm_or_org_nm,prof_given_1_nm` or 
 `order=-prof_surname_nm_or_org_nm,-prof_given_1_nm`. Each field can either be sorted ascending or descending independentyly.
