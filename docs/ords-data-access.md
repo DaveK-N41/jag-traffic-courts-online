@@ -25,7 +25,7 @@ It is up to the caller to ensure the correct wildcard sequences are used in the 
 #### Include Options
 
 Some portions of the TCO dispute record are more expensive to fetch. For those fields that 
-involve making a more expensive join, they excluded by default. Callers can request to include
+involve more expensive joins, they are excluded by default. Callers can request to include
 these fields in the response. There is an include parameter that can accept one or more of
 these parameters
 
@@ -87,7 +87,6 @@ The paging parameters are optional.  Query String Parameters: `offset_rows=n` an
 
 | Parameter | Type | Notes |
 | --------- | ---- | --------- |
-|  | number |
 | cdat_agency_type_cd | string |
 | agen_active_yn | string |
 
