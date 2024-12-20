@@ -67,7 +67,17 @@ Query String Parameters: `parameter_operator=value(s)`
 Query String Parameter: `order=field-list`
 
 Almost any field can be sorted on. To sort descending, prefix the field with a `-`. For example, `order=prof_surname_nm_or_org_nm,prof_given_1_nm` or 
-`order=-prof_surname_nm_or_org_nm,-prof_given_1_nm`. Each field can either be sorted ascending or descending independentyly.
+`order=-prof_surname_nm_or_org_nm,-prof_given_1_nm`. Each field can either be sorted ascending or descending independentyly. 
+If no order by is supplied, the default order is by `dispute_id`.
+
+#### Paging
+
+The paging parameters are optional.  Query String Parameters: `offset_rows=n` and `fetch_rows=m`
+
+| Parameter | Notes |
+| --------- | --------- |
+| offset_rows | The zero based number of rows to skip. Defaults to 0. |
+| fetch_rows | The page size. Defaults to 25. Use 0 (zero) to fetch just the rows. Use -1 to bypass paging and return all the rows. Returning all the rows should be used sparingly fetching all the rows without a narrow filter criteria could cause system stability. Fetching all the rows should be only used as stop gap until the application can be properly updated. |
 
 ### Get JUSTIN Agencies
 
@@ -77,9 +87,13 @@ Almost any field can be sorted on. To sort descending, prefix the field with a `
 
 | Parameter | Type | Notes |
 | --------- | ---- | --------- |
-| agen_id | number |
+|  | number |
 | cdat_agency_type_cd | string |
 | agen_active_yn | string |
+
+#### Order By
+
+Default sort order is by primary key `agen_id`.
 
 ### Get JUSTIN Languages
 
@@ -92,6 +106,11 @@ Almost any field can be sorted on. To sort descending, prefix the field with a `
 | cdln_language_cd | string |
 | cdln_active_yn | string |
 
+#### Order By
+
+Default sort order is by primary key `cdln_language_cd`.
+
+
 ### Get JUSTIN Provinces
 
 `GET /v2/justin_provinces`
@@ -102,6 +121,10 @@ Almost any field can be sorted on. To sort descending, prefix the field with a `
 | --------- | ---- | --------- |
 | ctry_id | number |
 | prov_abbreviation_cd | string |
+
+#### Order By
+
+Default sort order is by primary key `ctry_id`, `prov_abbreviation_cd`.
 
 ### Get JUSTIN Statutes
 
@@ -115,6 +138,9 @@ Almost any field can be sorted on. To sort descending, prefix the field with a `
 | act_cd | string | `_like` and `_regexp_like` are not supported |
 | stat_section_txt | string |
 
+#### Order By
+
+Default sort order is by primary key `stat_id`..
 
 
 ## High Level Execution Level
