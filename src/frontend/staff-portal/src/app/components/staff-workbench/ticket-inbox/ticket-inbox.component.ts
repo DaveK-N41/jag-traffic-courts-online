@@ -48,6 +48,7 @@ export class TicketInboxComponent implements OnInit {
   sortDirection: Array<SortDirection> = [SortDirection.Desc];
   newCount: number = 0;
   filters: TableFilter = new TableFilter();
+  previousFilters: TableFilter = new TableFilter();
 
   constructor(
     private disputeService: DisputeService,
@@ -72,6 +73,8 @@ export class TicketInboxComponent implements OnInit {
     let dataFilter: TableFilter = this.tableFilterService.tableFilters[this.tabIndex];
     dataFilter.status = dataFilter.status ?? "";
     this.filters = dataFilter;
+    this.previousFilters = { ...dataFilter };
+    this.currentPage = this.tableFilterService.currentPage[this.tabIndex];
     this.getAllDisputes();
     this.countNewTickets();
   }
@@ -119,8 +122,12 @@ export class TicketInboxComponent implements OnInit {
 
   // called on keyup in filter field
   onApplyFilter(dataFilters: TableFilter) {
+    if (JSON.stringify(this.previousFilters) !== JSON.stringify(dataFilters)) { // Add this line
+      this.currentPage = 1;
+      this.tableFilterService.currentPage[this.tabIndex] = 1;
+    }
     this.filters = dataFilters;
-    this.currentPage = 1;
+    this.previousFilters = { ...dataFilters };
     this.getAllDisputes();
   }
 
@@ -132,11 +139,13 @@ export class TicketInboxComponent implements OnInit {
     this.sortBy = [sort.active];
     this.sortDirection = [sort.direction ? sort.direction as SortDirection : SortDirection.Desc];
     this.currentPage = 1;
+    this.tableFilterService.currentPage[this.tabIndex] = 1;
     this.getAllDisputes();
   }
 
   onPageChange(event: number) {
     this.currentPage = event;
+    this.tableFilterService.currentPage[this.tabIndex] = event;
     this.getAllDisputes();
   }
 }

@@ -45,6 +45,7 @@ export class DisputeDecisionInboxComponent implements OnInit {
   sortBy: string = "jjDecisionDate";
   sortDirection: SortDirection = SortDirection.Asc;
   filters: TableFilter = new TableFilter();
+  previousFilters: TableFilter = new TableFilter();
   disputeStatus = DisputeStatus;
 
   constructor(
@@ -70,6 +71,8 @@ export class DisputeDecisionInboxComponent implements OnInit {
     let dataFilter: TableFilter = this.tableFilterService.tableFilters[this.tabIndex];
     dataFilter.status = dataFilter.status ?? "";
     this.filters = dataFilter;
+    this.previousFilters = { ...dataFilter };
+    this.currentPage = this.tableFilterService.currentPage[this.tabIndex];
     this.authService.userProfile$.subscribe(userProfile => {
       if (userProfile) {
         this.IDIR = userProfile.idir;
@@ -115,8 +118,12 @@ export class DisputeDecisionInboxComponent implements OnInit {
   }
 
   onApplyFilter(dataFilters: TableFilter) {
+    if (JSON.stringify(this.previousFilters) !== JSON.stringify(dataFilters)) { // Add this line
+      this.currentPage = 1;
+      this.tableFilterService.currentPage[this.tabIndex] = 1;
+    }
     this.filters = dataFilters;
-    this.currentPage = 1;
+    this.previousFilters = { ...dataFilters };
     this.getTCODisputes();
   }
 
@@ -124,11 +131,13 @@ export class DisputeDecisionInboxComponent implements OnInit {
     this.sortBy = sort.active;
     this.sortDirection = sort.direction ? sort.direction as SortDirection : SortDirection.Desc;
     this.currentPage = 1;
+    this.tableFilterService.currentPage[this.tabIndex] = 1;
     this.getTCODisputes();
   }
 
   onPageChange(event: number) {
     this.currentPage = event;
+    this.tableFilterService.currentPage[this.tabIndex] = event;
     this.getTCODisputes();
   }
 }
