@@ -10,8 +10,12 @@ will export credentials
 ## OrdsDataService
 
 The `Base Environment` will set the `base_url` for both `tco` and `occam`. These depend on the `wsgw_host` and `db_name`
-parameters defined in each environment specific environment.  Here is a template for the `dev` environment. You will
-need to substitue the correct username and password values. Ensure to create your environment as a `Private environment`.
+parameters defined in each environment specific environment. To get started, you will need to create a private environment.
+Here is a template for a `dev` environment. You will need to substitue the correct username and password values.
+Ensure to create your environment as a `Private environment`. Once you create your private environment, you should be
+able to execute the various ORDS endpoints.
+
+**Note**: This collection primarily only has the new v2 endpoints at this time.
 
 ```json
 {
