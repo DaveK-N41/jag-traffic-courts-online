@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatLegacyDialog as MatDialog, MatLegacyDialogConfig as MatDialogConfig } from '@angular/material/legacy-dialog';
 import { ActivatedRoute } from '@angular/router';
@@ -16,6 +16,7 @@ import { ConfirmDialogComponent } from '@shared/dialogs/confirm-dialog/confirm-d
 import { TicketImageDialogComponent } from '@shared/dialogs/ticket-image-dialog/ticket-image-dialog.component';
 import { ViolationTicketService, OCRMessageToDisplay } from 'app/services/violation-ticket.service';
 import { StringUtils } from '@core/utils/string-utils.class';
+import { TicketImageContainerComponent } from '@shared/dialogs/ticket-image-container/ticket-image-container.component';
 
 @Component({
   selector: 'app-ticket-info',
@@ -25,7 +26,7 @@ import { StringUtils } from '@core/utils/string-utils.class';
 export class TicketInfoComponent implements OnInit {
   @Input() public disputeInfo: Dispute;
   @Output() public backInbox: EventEmitter<any> = new EventEmitter();
-
+  @ViewChild(TicketImageContainerComponent) ticketImageContainer: TicketImageContainerComponent;
   public isMobile: boolean;
   public previousButtonIcon = 'keyboard_arrow_left';
   public validateClicked = false;
@@ -281,19 +282,11 @@ export class TicketInfoComponent implements OnInit {
       })
   }
 
-  public onExpandTicketImage() {
-    const dialogConfig = new MatDialogConfig();
-    dialogConfig.disableClose = true;
-    dialogConfig.autoFocus = true;
-    dialogConfig.data = { imageToShow: this.imageToShow }
-    dialogConfig.hasBackdrop = false;
-    dialogConfig.position = {
-      top: '200px',
-      left: '0px'
-    }
-    this.dialog.open(TicketImageDialogComponent, dialogConfig).afterClosed()
-      .subscribe((action: any) => {
-      });
+  public onExpandTicketImage(event: MouseEvent) {
+    this.ticketImageContainer.openImage(event);
+  }
+  public onCloseTicketImage(event: MouseEvent) {
+    this.ticketImageContainer.closeImage(event);
   }
 
   public onBack() {

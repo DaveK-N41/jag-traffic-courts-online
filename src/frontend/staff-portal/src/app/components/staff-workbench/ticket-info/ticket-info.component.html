@@ -41,17 +41,19 @@
           </app-page-header>
         </mat-expansion-panel-header>
         <div class="ticket-body">
+          <app-ticket-image-container [imageToShow]="imageToShow" appClickOutside (clickOutside)="onCloseTicketImage($event)"></app-ticket-image-container>
           <div style="display: flex; justify-content: space-evenly">
             <section class="mb-2 img-section" style="width: 20%">
               <ng-container subHeader>
                 <h3>Ticket Image</h3>
               </ng-container>
               <div width="150 !important" *ngIf="imageToShow">
-                <img [src]="imageToShow" width="150" height="200" (click)="onExpandTicketImage()" class="ticket-image"><br />
-                <span style="font-size:10px; color:#009cde; align-content: center;" width="150" (click)="onExpandTicketImage()" class="ticket-image">
+                <img [src]="imageToShow" width="150" height="200" (click)="onExpandTicketImage($event)" class="ticket-image"><br />
+                <span style="font-size:10px; color:#009cde; align-content: center;" width="150" (click)="onExpandTicketImage($event)" class="ticket-image">
                   <i class="fa fa-plus-circle" style="font-size:18px; color:#009cde"></i>
-                  <strong> Click to expand ticket image</strong>
+                  <strong> Click to expand ticket image</strong><br />
                 </span>
+                <p style="font-size:9px; color:#009cde">Or press (Ctrl + I) to toggle show/hide image</p>
               </div>
             </section>
             <section class="ticket-section-form" class="mb-2" style="width:48%">
