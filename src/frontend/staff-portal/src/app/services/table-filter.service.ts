@@ -6,7 +6,7 @@ import { TableFilter } from '@shared/models/table-filter-options.model';
 })
 export class TableFilterService { // Temp
   tableFilters: TableFilter[] = new Array(4).fill(new TableFilter());
-
+  currentPage: number[] = new Array(4).fill(1);
   constructor(
   ) {
   }
